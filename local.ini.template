@@ -1,0 +1,14 @@
+[credentials]
+username: max@surveycto.com
+password: xxx
+
+[key]
+private: x
+
+[file]
+csv: /Users/username/Documents/Data Exports/Sample Data/Sample household listing form with sample data_WIDE.csv
+field: district
+
+[twilio]
+account_sid: 
+auth_token: 
