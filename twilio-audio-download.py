@@ -11,7 +11,7 @@ from twilio.rest import Client
 
 def getConfigInfo():
   try:
-    inifile_name = sys.path[0] + '/local.ini'
+    inifile_name = sys.path[0] + '/twilio_settings.ini'
     config = configparser.ConfigParser()
     config.read(inifile_name)
     return config
