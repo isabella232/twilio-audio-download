@@ -14,15 +14,14 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 def loadKeyFile(privateKeyPath):
   try:
-    keyFile = open(privateKeyPath, mode='r')
+    keyFile = open(privateKeyPath, mode='rb')
   except Exception as e:
     print('Key not found at specified location:', e)
     return ''
 
   try:
     keyData = keyFile.read()
-    byteKey = bytes(keyData, 'utf-8')
-    key = serialization.load_pem_private_key(byteKey, password=None, backend=default_backend())
+    key = serialization.load_pem_private_key(keyData, password=None, backend=default_backend())
     print('Key info retrieved')
   except Exception as e:
     print('Error:', e)
