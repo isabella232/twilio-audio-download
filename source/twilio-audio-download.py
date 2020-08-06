@@ -5,6 +5,7 @@ import csv
 import configparser
 import installpack
 import requests
+import decryptor
 
 twilio = installpack.checkInstall('twilio')
 from twilio.rest import Client
@@ -23,10 +24,27 @@ def getCredentials(config):
     credentials = config['twilio']
     sid = credentials['account_sid']
     authtoken = credentials['auth_token']
-    privateKey = config['key']['private']
-    return [sid, authtoken, privateKey]
   except:
     return ['', '', '']
+
+  try:
+    privateKeyPath = config['key']['path']
+  except:
+    key = ''
+    # End no path given
+  
+  if (privateKeyPath != None) and (privateKeyPath != ''):
+    try:
+      # ('Private key path:', privateKeyPath)
+      key = decryptor.loadKeyFile(privateKeyPath)
+    except Exception as e:
+      print('Unable to load decryptor:', e)
+      key = ''
+  else: # If no path to private key is defined
+    key = ''
+    # End check for private key
+  # End found a path for the key
+  return [sid, authtoken, key]
 
 def getFieldValue(csvLocation, field):
   values = []
@@ -36,6 +54,13 @@ def getFieldValue(csvLocation, field):
       values.append(row[field])
   return values
 
+def decryptAudio(encDetails, privateKey):
+  encType = encDetails['type']
+  publicKeySid = encDetails['public_key_sid']
+  encCek = encDetails['encrypted_cek']
+  encIv = encDetails['iv']
+  return [encType, publicKeySid, encCek, encIv]
+
 def main():
   config = getConfigInfo()
   print('starting')
@@ -44,7 +69,7 @@ def main():
     exit()
 
   credentials = getCredentials(config)
-  sid, authtoken, key = [credentials[i] for i in range(0, 3)]
+  sid, authtoken, privateKey = [credentials[i] for i in range(0, 3)]
   csvFile = config['file']
   csvLocation = csvFile['csv']
   recordingField = csvFile['field']
@@ -85,19 +110,25 @@ def main():
 
       recordingFile = session.get(recordingUrl)
       filename = recordingSid + '.' + audioFormat
-      print('File name: ' + filename)
-      print('URL: ' + recordingUrl)
 
       if filepath == '':
         fullpath = filename
       elif filepath.endswith('/') or filepath.endswith('\\'):
         fullpath = filepath + filename
 
-      print('path: ' + fullpath)
       with open(fullpath, 'wb') as f:
         f.write(recordingFile.content)
 
-  
+      encryptionDetails = i['encryption_details']
+      print(encryptionDetails)
+      if(encryptionDetails != None):
+        decryptor.decrypt(privateKey, encryptionDetails['encrypted_cek'], encryptionDetails['iv'], fullpath)
+        # Completed decryption
+      
+      # end FOR through each recording in the submission
+    # end FOR loop through each recording
+
+
 
 
 if __name__ == "__main__":
