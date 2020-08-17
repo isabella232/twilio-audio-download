@@ -101,15 +101,20 @@ def main():
     recordings = response['recordings']
     for i in recordings:
       print(i)
+      encryptionDetails = i['encryption_details']
+
       apiVersion = i['api_version']
       accountSid = i['account_sid']
       recordingSid = i['sid']
       recordingUrl = 'https://api.twilio.com/' + apiVersion + '/Accounts/' + accountSid + '/Recordings/' + recordingSid
-      print('URL:', recordingUrl)
 
-      if audioFormat != 'wav':
+      if (encryptionDetails == None) and (audioFormat != 'wav'):
         recordingUrl += '.' + audioFormat
 
+      if (encryptionDetails != None):
+        audioFormat = 'wav'
+      
+      print('URL:', recordingUrl)
       recordingFile = session.get(recordingUrl)
       filename = recordingSid + '.' + audioFormat
 
@@ -121,7 +126,6 @@ def main():
       with open(fullpath, 'wb') as f:
         f.write(recordingFile.content)
 
-      encryptionDetails = i['encryption_details']
       if(encryptionDetails != None):
         RecordingsDecryptor.decrypt_recording(privateKey, fullpath, encryptionDetails['encrypted_cek'], encryptionDetails['iv'])
         # decryptor.decrypt(privateKey, encryptionDetails['encrypted_cek'], encryptionDetails['iv'], fullpath)
