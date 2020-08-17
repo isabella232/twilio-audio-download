@@ -3,16 +3,17 @@ import json
 import os
 import csv
 import configparser
-import installpack
+from . import RecordingsDecryptor
+from . import installpack
 import requests
-import RecordingsDecryptor
 
 twilio = installpack.checkInstall('twilio')
 from twilio.rest import Client
 
 def getConfigInfo():
   try:
-    inifile_name = sys.path[0] + '/twilio_settings.ini'
+    inifile_name = os.path.dirname(os.path.realpath(__file__)) + '/twilio_settings.ini'
+    print(inifile_name)
     config = configparser.ConfigParser()
     config.read(inifile_name)
     return config

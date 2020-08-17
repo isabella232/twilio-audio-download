@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-import installpack
+from . import installpack
 
 installpack.checkInstall('cryptography')
 
