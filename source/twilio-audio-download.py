@@ -5,7 +5,7 @@ import csv
 import configparser
 import installpack
 import requests
-import decryptor
+import RecordingsDecryptor
 
 twilio = installpack.checkInstall('twilio')
 from twilio.rest import Client
@@ -36,7 +36,7 @@ def getCredentials(config):
   if (privateKeyPath != None) and (privateKeyPath != ''):
     try:
       # ('Private key path:', privateKeyPath)
-      key = decryptor.loadKeyFile(privateKeyPath)
+      key = RecordingsDecryptor.get_private_key(privateKeyPath)
     except Exception as e:
       print('Unable to load decryptor:', e)
       key = ''
@@ -100,10 +100,12 @@ def main():
     response = session.get(r).json()
     recordings = response['recordings']
     for i in recordings:
+      print(i)
       apiVersion = i['api_version']
       accountSid = i['account_sid']
       recordingSid = i['sid']
       recordingUrl = 'https://api.twilio.com/' + apiVersion + '/Accounts/' + accountSid + '/Recordings/' + recordingSid
+      print('URL:', recordingUrl)
 
       if audioFormat != 'wav':
         recordingUrl += '.' + audioFormat
@@ -120,9 +122,9 @@ def main():
         f.write(recordingFile.content)
 
       encryptionDetails = i['encryption_details']
-      print(encryptionDetails)
       if(encryptionDetails != None):
-        decryptor.decrypt(privateKey, encryptionDetails['encrypted_cek'], encryptionDetails['iv'], fullpath)
+        RecordingsDecryptor.decrypt_recording(privateKey, fullpath, encryptionDetails['encrypted_cek'], encryptionDetails['iv'])
+        # decryptor.decrypt(privateKey, encryptionDetails['encrypted_cek'], encryptionDetails['iv'], fullpath)
         # Completed decryption
       
       # end FOR through each recording in the submission
