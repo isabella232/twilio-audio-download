@@ -1,3 +1,4 @@
 twilio_settings.ini
 __pycache__
 test-files/*
+old-files/*
