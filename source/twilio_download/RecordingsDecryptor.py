@@ -12,11 +12,12 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 # For Python 3 only:
 import codecs
 
+# Creates the name of the file to be used for the decrypted file
 def decrypt_path(enc_path):
-	dotLocation = enc_path.rfind('.')
+	dotLocation = enc_path.rfind('.wav.enc')
 	beforeDot = enc_path[0:dotLocation]
-	pathExtension = enc_path[dotLocation:]
-	decryptedPath = beforeDot + '-decrypted' + pathExtension
+	# pathExtension = enc_path[dotLocation:]
+	decryptedPath = beforeDot + '-decrypted.wav'
 	return decryptedPath
 
 def get_private_key(path):
@@ -86,7 +87,3 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 
 	decrypted_recording_file.close()
 	encrypted_recording_file.close()
-
-
-if __name__ == "__main__":
-	decrypt_recording()
