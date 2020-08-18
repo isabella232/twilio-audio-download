@@ -1,11 +1,14 @@
 import subprocess
 import importlib
 import sys
+from . import logger
 
 def install(package):
+  logger.log('Installing ' + package)
   print('Installing ' + package + ', please wait...')
   subprocess.check_call([sys.executable, "-m", "pip", "install", package])
   print('Installation of ' + package + ' is complete.')
+  logger.log('Installation of ' + package + ' was successful')
 
 def checkInstall(moduleName, packageName=None): # Returns the module
   try:
@@ -15,7 +18,7 @@ def checkInstall(moduleName, packageName=None): # Returns the module
       install(moduleName)
       module = importlib.import_module(moduleName, package=packageName)
     except:
-      print('Sorry, but the installation failed:', sys.exc_info()[0])
+      logger.log('Sorry, but the installation failed:', sys.exc_info()[0])
       exit()
     
   # End module not installed

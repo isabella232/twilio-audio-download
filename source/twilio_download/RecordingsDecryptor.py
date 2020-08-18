@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from . import installpack
+from . import installpack, logger
 
 installpack.checkInstall('cryptography')
 
@@ -26,7 +26,6 @@ def get_private_key(path):
 	return key
 
 def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
-	print("Twilio Sample Code to Decrypt Twilio encrypted recordings")
 	# This code sample assumes you have added cryptography.hazmat library to your project
 
 	# Follow "Per Recording Decryption Steps"
@@ -87,7 +86,6 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 
 	decrypted_recording_file.close()
 	encrypted_recording_file.close()
-	print("Recording decrypted successfully. You can play the recording from " + decrypted_recording_file_path);
 
 
 if __name__ == "__main__":

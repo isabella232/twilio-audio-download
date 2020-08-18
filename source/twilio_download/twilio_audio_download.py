@@ -3,17 +3,14 @@ import json
 import os
 import csv
 import configparser
-from . import RecordingsDecryptor
-from . import installpack
+from . import RecordingsDecryptor, installpack, logger
 import requests
 
 twilio = installpack.checkInstall('twilio')
-from twilio.rest import Client
 
 def getConfigInfo():
   try:
     inifile_name = os.path.dirname(os.path.realpath(__file__)) + '/twilio_settings.ini'
-    print(inifile_name)
     config = configparser.ConfigParser()
     config.read(inifile_name)
     return config
@@ -39,7 +36,7 @@ def getCredentials(config):
       # ('Private key path:', privateKeyPath)
       key = RecordingsDecryptor.get_private_key(privateKeyPath)
     except Exception as e:
-      print('Unable to load decryptor:', e)
+      logger.log('Error: Unable to load decryptor:', e)
       key = ''
   else: # If no path to private key is defined
     key = ''
@@ -47,12 +44,35 @@ def getCredentials(config):
   # End found a path for the key
   return [sid, authtoken, key]
 
-def getFieldValue(csvLocation, field):
+def getFieldValue(csvLocation, field, data_format): # Returns URIs to the recordings so they can be retrieved
   values = []
-  with open(csvLocation, 'r', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-      values.append(row[field])
+  try:
+    with open(csvLocation, 'r', newline='') as csvfile:
+      reader = csv.DictReader(csvfile)
+
+      if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
+        for row in reader:
+          repeat_num = 0
+          while True:
+            repeat_num += 1
+            header_name = field + '_' + str(repeat_num)
+            try:
+              field_value = row[header_name]
+              if field_value == '':
+                break
+              values.append(field_value)
+            except:
+              break
+            # end WHILE
+          # end FOR
+        # end IF wide
+      else: # Not wide, so must be long format
+        for row in reader:
+          values.append(row[field])
+  except FileNotFoundError:
+    logger.log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the file path is correct under ')
+  except Exception as e:
+    logger.log('Error while retrieving CSV file info: ' + str(e))
   return values
 
 def decryptAudio(encDetails, privateKey):
@@ -63,23 +83,41 @@ def decryptAudio(encDetails, privateKey):
   return [encType, publicKeySid, encCek, encIv]
 
 def main():
+  logger.log('Starting audio file retrieval')
+  current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
+  thenrun_loc = os.path.dirname(current_loc) # Pathname of the "thenrun" folder
+  data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
+
   config = getConfigInfo()
-  print('starting')
   if (config == ''):
-    print('Config file not found. Exiting.')
+    logger.log('Config file not found. Exiting.')
     exit()
 
   credentials = getCredentials(config)
   sid, authtoken, privateKey = [credentials[i] for i in range(0, 3)]
-  csvFile = config['file']
-  csvLocation = csvFile['csv']
-  recordingField = csvFile['field']
-  recLocs = getFieldValue(csvLocation, recordingField)
+  csvFileInfo = config['file']
 
-  session = requests.Session()
+  form_title = csvFileInfo['form_title']
+  rg_name = csvFileInfo['rg_name']
+  data_format = csvFileInfo['format'] # Whether the data is in long or wide format. Will assume long if not specified
+  add_group_name = csvFileInfo['add_group_name']
+  recordingField = csvFileInfo['field']
+
+  if data_format == 'wide':
+    csv_filename = form_title + '_WIDE.csv' # If the export is wide format
+  elif rg_name == '':
+    csv_filename = form_title + '.csv' # If the export is long, but not in a repeat group
+  else:
+    csv_filename = form_title + '-' + rg_name + '.csv' # If the export is wide, and the calling field is in a repeat group
+
+  if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
+    recordingField = rg_name + '-' + recordingField
+  
+  csvPathname = data_loc + '/' + csv_filename
+  recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
+
+  session = requests.Session() # Starting HTTP session
   session.auth = (sid, authtoken)
-  client = Client(sid, authtoken)
-
 
   try: # Retrieving recording format, and preferred location
     recordingInfo = config['recording']
@@ -89,19 +127,24 @@ def main():
       audioFormat = 'wav'
     try:
       filepath = recordingInfo['location']
-      if not os.path.exists(filepath):
-        os.makedirs(filepath)
+      if filepath == '' or filepath == None:
+        filepath = data_loc + '/Call recordings/'
     except:
-      filepath = ''
+      filepath = data_loc + '/Call recordings/'
   except:
-      audioFormat = 'wav'
-      filepath = ''
+    audioFormat = 'wav'
+    filepath = data_loc + '/Call recordings/'
 
+  try:
+    if not os.path.exists(filepath):
+      os.makedirs(filepath)
+  except Exception as e:
+    logger.log('Error while creating folder: ' + str(e))
+  
   for r in recLocs:
     response = session.get(r).json()
     recordings = response['recordings']
     for i in recordings:
-      print(i)
       encryptionDetails = i['encryption_details']
 
       apiVersion = i['api_version']
@@ -115,7 +158,6 @@ def main():
       if (encryptionDetails != None):
         audioFormat = 'wav'
       
-      print('URL:', recordingUrl)
       recordingFile = session.get(recordingUrl)
       filename = recordingSid + '.' + audioFormat
 
@@ -134,10 +176,7 @@ def main():
       
       # end FOR through each recording in the submission
     # end FOR loop through each recording
-
-
-
+  logger.log('Completed download')
 
 if __name__ == "__main__":
 	main()
-
