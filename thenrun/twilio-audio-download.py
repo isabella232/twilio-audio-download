@@ -11,6 +11,16 @@ import subprocess
 import importlib
 import codecs
 
+# Logging function for error checking
+def log(message, include_time = True):
+  current_path = os.path.dirname(os.path.realpath(__file__))
+  logger_loc = os.path.dirname(current_path) # Path one level up, log location
+  if(include_time):
+    message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
+  print(message)
+  with open(logger_loc + '/recording_log.log', 'a') as f:
+    f.write(message)
+
 # INSTALLATION FUNCTIONS
 
 def install(package):
@@ -41,16 +51,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-# Logging function for error checking
-def log(message, include_time = True):
-  current_path = os.path.dirname(os.path.realpath(__file__))
-  logger_loc = os.path.dirname(current_path) # Path one level up, log location
-  if(include_time):
-    message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
-  print(message)
-  with open(logger_loc + '/recording_log.log', 'a') as f:
-    f.write(message)
 
 # DECRYPTION
 
@@ -198,7 +198,7 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
         for row in reader:
           values.append(row[field])
   except FileNotFoundError:
-    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the file path is correct under ')
+    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name and group name are correct.')
   except Exception as e:
     log('Error while retrieving CSV file info: ' + str(e))
   return values
