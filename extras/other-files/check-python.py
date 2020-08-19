@@ -1,30 +1,5 @@
 import sys
 import subprocess
-
-# INSTALLATION FUNCTIONS
-
-def install(package):
-  print('Installing ' + package)
-  subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-  print('Installation of ' + package + ' was successful')
-
-def checkInstall(moduleName, packageName=None): # Returns the module
-  try:
-    module = importlib.import_module(moduleName, package=packageName)
-  except:
-    try:
-      install(moduleName)
-      module = importlib.import_module(moduleName, package=packageName)
-    except Exception as e:
-      print('Sorry, but the installation failed:', e)
-      exit()
-    # End module not installed
-  return module
-# End checkInstall
-
-# END INSTALLATION FUNCTIONS
-
-checkInstall('ctypes')
 import ctypes
 
 version_all = sys.version_info

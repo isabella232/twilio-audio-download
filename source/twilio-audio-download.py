@@ -8,6 +8,7 @@ from time import gmtime, strftime
 import subprocess
 import importlib
 import codecs
+import ctypes
 
 # Logging function for error checking
 def log(message, include_time = True):
@@ -46,7 +47,6 @@ def checkInstall(moduleName, packageName=None): # Returns the module
 checkInstall('configparser')
 checkInstall('requests')
 checkInstall('cryptography')
-checkInstall('ctypes')
 
 import configparser
 import requests
@@ -54,7 +54,6 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import ctypes
 
 # DECRYPTION
 
