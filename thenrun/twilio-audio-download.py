@@ -44,7 +44,7 @@ def checkInstall(moduleName, packageName=None): # Returns the module
 
 # END INSTALLATION FUNCTIONS
 
-checkinstall('requests')
+checkInstall('requests')
 checkInstall('cryptography')
 
 import requests
