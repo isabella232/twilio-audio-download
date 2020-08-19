@@ -37,7 +37,7 @@ def checkInstall(moduleName, packageName=None): # Returns the module
       log('Sorry, but the installation failed:', sys.exc_info()[0])
       exit()
     
-  # End module not installed
+    # End module not installed
   return module
 # End checkInstall
 
@@ -212,8 +212,7 @@ def main():
 
   if not sys.version_info.major == 3:
     log('Python 3 not installed.')
-    ctypes.windll.user32.MessageBoxW(0, u'Error: The script was not run with Python 3. Make sure the script is set to be run with Python 3. If Python 3 is not installed, go to the Windows Store to install Python 3, then run this script again. The Windows store should appear when you click "OK".', u'Python 3 error', 0x0 | 0x30)
-    subprocess.check_call([sys.executable, "python3"])
+    ctypes.windll.user32.MessageBoxW(0, u'Error: The script was not run with Python 3. Make sure the script is set to be run with Python 3. If Python 3 is not installed, go to the Windows Store to install Python 3, then run this script again. You can install it at https://microsoft.com/p/python-38/9mssztt1n39l.', u'Python 3 error', 0x0 | 0x30)
     exit()
 
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
