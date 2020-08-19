@@ -46,6 +46,7 @@ def checkInstall(moduleName, packageName=None): # Returns the module
 checkInstall('configparser')
 checkInstall('requests')
 checkInstall('cryptography')
+checkInstall('ctypes')
 
 import configparser
 import requests
@@ -53,6 +54,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import ctypes
 
 # DECRYPTION
 
@@ -207,6 +209,12 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
 
 def main():
   log('Starting audio file retrieval')
+
+  if not sys.version_info.major == 3:
+    log('Python 3 not installed.')
+    ctypes.windll.user32.MessageBoxW(0, u'Error: Python 3 is not installed. Go to https://www.python.org/downloads/windows/ to install Python 3, then run this script again', 'Python 3 error', 1)
+    exit()
+
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
   thenrun_loc = os.path.dirname(current_loc) # Pathname of the "thenrun" folder
   # data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
