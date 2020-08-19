@@ -5,7 +5,6 @@ import json
 import os
 import csv
 import configparser
-import requests
 from time import gmtime, strftime
 import subprocess
 import importlib
@@ -45,8 +44,10 @@ def checkInstall(moduleName, packageName=None): # Returns the module
 
 # END INSTALLATION FUNCTIONS
 
+checkinstall('requests')
 checkInstall('cryptography')
 
+import requests
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
