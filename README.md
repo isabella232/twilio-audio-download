@@ -14,7 +14,7 @@ If you run into issues while using this script, see *Troubleshooting* below. If 
 
 This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it.
 
-To check your default Python application, open the [*check-python.py* file]() (in this respository under "extras/other-files/"). When you open that file, one of the following situations will occur:  
+To check your default Python application, open the <a href="https://github.com/TheOmnimax/twilio-audio-download/raw/develop/extras/other-files/check-python.py" download> *check-python.py* file</a> (in this respository under "extras/other-files/"). When you open that file, one of the following situations will occur:  
 **A popup appears stating the Python 3 or above is installed**: Click *OK*, and you are all set. (Python 3.8, 3.7.4, and other versions of Python 3 will work well.)  
 **A popup appears stating a version of Python 2 is installed**:
 1. Click *OK*.
