@@ -212,7 +212,7 @@ def main():
 
   if not sys.version_info.major == 3:
     log('Python 3 not installed.')
-    ctypes.windll.user32.MessageBoxW(0, u'Error: Python 3 is not installed. Go to https://www.python.org/downloads/windows/ to install Python 3, then run this script again', 'Python 3 error', 1)
+    ctypes.windll.user32.MessageBoxW(0, u'Error: Python 3 is not installed. Go to https://www.python.org/downloads/windows/ to install Python 3, then run this script again', u'Python 3 error', 1)
     exit()
 
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
