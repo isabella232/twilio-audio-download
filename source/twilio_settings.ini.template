@@ -1,0 +1,17 @@
+[key]
+path: 
+
+[file]
+form_title: Twilio call sample form
+rg_name: call_attempts
+format: long
+add_group_name: False
+field: twilio_call_recordings_url
+
+[twilio]     
+account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[recording]
+location:
+format: mp3
