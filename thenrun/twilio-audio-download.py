@@ -1,16 +1,142 @@
+#!/usr/bin/python
+
 import sys
 import json
 import os
 import csv
 import configparser
-from . import RecordingsDecryptor, installpack, logger
 import requests
+from time import gmtime, strftime
+import subprocess
+import importlib
+import codecs
 
-twilio = installpack.checkInstall('twilio')
+# INSTALLATION FUNCTIONS
+
+def install(package):
+  log('Installing ' + package)
+  subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+  log('Installation of ' + package + ' was successful')
+
+def checkInstall(moduleName, packageName=None): # Returns the module
+  try:
+    module = importlib.import_module(moduleName, package=packageName)
+  except:
+    try:
+      install(moduleName)
+      module = importlib.import_module(moduleName, package=packageName)
+    except:
+      log('Sorry, but the installation failed:', sys.exc_info()[0])
+      exit()
+    
+  # End module not installed
+  return module
+# End checkInstall
+
+# END INSTALLATION FUNCTIONS
+
+checkInstall('cryptography')
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+# Logging function for error checking
+def log(message, include_time = True):
+  current_path = os.path.dirname(os.path.realpath(__file__))
+  logger_loc = os.path.dirname(current_path) # Path one level up, log location
+  if(include_time):
+    message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
+  print(message)
+  with open(logger_loc + '/recording_log.log', 'a') as f:
+    f.write(message)
+
+# DECRYPTION
+
+# Creates the pathname to be used for the decrypted file
+def decrypt_path(enc_path):
+	dotLocation = enc_path.rfind('.wav.enc')
+	beforeDot = enc_path[0:dotLocation]
+	# pathExtension = enc_path[dotLocation:]
+	decryptedPath = beforeDot + '-decrypted.wav'
+	return decryptedPath
+
+def get_private_key(path):
+	private_key = open(path, mode="r")
+	key = serialization.load_pem_private_key(private_key.read().encode(), password=None, backend=default_backend())
+	private_key.close()
+	return key
+
+def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
+	# This code sample assumes you have added cryptography.hazmat library to your project
+
+	# Follow "Per Recording Decryption Steps"
+	# https://www.twilio.com/docs/voice/tutorials/call-recording-encryption#per-recording-decryption-steps-customer
+
+	# 1) Obtain encrypted_cek, iv parameters within EncryptionDetails via recordingStatusCallback or
+	# by performing a GET on the recording resource
+
+	# 2) Retrieve customer private key corresponding to public_key_sid and use it to decrypt base 64 decoded
+	# encrypted_cek via RSAES-OAEP-SHA256-MGF1
+
+	decrypted_recording_file_path = decrypt_path(encrypted_path)
+
+	# Python2 version:
+#	 decrypted_cek = key.decrypt(
+#		 encrypted_cek.decode('base64'),
+#		 padding.OAEP(
+#			 mgf=padding.MGF1(algorithm=hashes.SHA256()),
+#			 algorithm=hashes.SHA256(),
+#			 label=None
+#		 )
+#	 )
+
+	# Python3 version:
+	decrypted_cek = key.decrypt(
+		codecs.decode(encrypted_cek.encode(), 'base64'),
+		padding.OAEP(
+			mgf=padding.MGF1(algorithm=hashes.SHA256()),
+			algorithm=hashes.SHA256(),
+			label=None
+		)
+	)
+ 
+	# 3) Initialize a AES256-GCM SecretKey object with decrypted CEK and base 64 decoded iv
+
+	# Python2 version:
+#	 decryptor = Cipher(
+#		 algorithms.AES(decrypted_cek),
+#		 modes.GCM(iv.decode('base64')),
+#		 backend=default_backend()
+#	 ).decryptor()
+
+	# Python3 version:
+	decryptor = Cipher(
+		algorithms.AES(decrypted_cek),
+		modes.GCM(codecs.decode(iv.encode(), 'base64')),
+		backend=default_backend()
+	).decryptor()
+
+	# 4) Decrypt encrypted recording using the SecretKey
+
+	decrypted_recording_file = open(decrypted_recording_file_path, "wb")
+	encrypted_recording_file = open(encrypted_path, "rb")
+
+	for chunk in iter(lambda: encrypted_recording_file.read(4 * 1024), b''):
+		decrypted_chunk = decryptor.update(chunk)
+		decrypted_recording_file.write(decrypted_chunk)
+
+	decrypted_recording_file.close()
+	encrypted_recording_file.close()
+
+# END DECRYPTION
+
+# MAIN TWILIO FUNCTIONS
 
 def getConfigInfo():
   try:
-    inifile_name = os.path.dirname(os.path.realpath(__file__)) + '/twilio_settings.ini'
+    inifile_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/twilio_settings.ini'
     config = configparser.ConfigParser()
     config.read(inifile_name)
     return config
@@ -24,7 +150,7 @@ def getCredentials(config):
     sid = credentials['account_sid']
     authtoken = credentials['auth_token']
   except Exception as e:
-    logger.log('Unable to retrieve Twilio credentials: ' + str(e))
+    log('Unable to retrieve Twilio credentials: ' + str(e))
     exit() # No point in continuing if unable to retrieve credentials
     # return ['', '', '']
 
@@ -36,9 +162,9 @@ def getCredentials(config):
   
   if (privateKeyPath != ''):
     try:
-      key = RecordingsDecryptor.get_private_key(privateKeyPath)
+      key = get_private_key(privateKeyPath)
     except Exception as e:
-      logger.log('Error: Unable to process private key:', str(e))
+      log('Error: Unable to process private key:', str(e))
       key = ''
   else: # If no path to private key is defined
     key = ''
@@ -72,20 +198,20 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
         for row in reader:
           values.append(row[field])
   except FileNotFoundError:
-    logger.log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the file path is correct under ')
+    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the file path is correct under ')
   except Exception as e:
-    logger.log('Error while retrieving CSV file info: ' + str(e))
+    log('Error while retrieving CSV file info: ' + str(e))
   return values
 
 def main():
-  logger.log('Starting audio file retrieval')
+  log('Starting audio file retrieval')
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
   thenrun_loc = os.path.dirname(current_loc) # Pathname of the "thenrun" folder
-  data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
+  # data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
 
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
   if (config == ''):
-    logger.log('Config file not found. Exiting.')
+    log('Config file not found. Exiting.')
     exit()
 
   credentials = getCredentials(config) # Retrieve Twilio credentials and private key
@@ -99,7 +225,7 @@ def main():
     add_group_name = csvFileInfo['add_group_name']
     recordingField = csvFileInfo['field']
   except Exception as e:
-    logger.log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e))
+    log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e))
     exit()
 
   if data_format == 'wide':
@@ -112,7 +238,7 @@ def main():
   if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
     recordingField = rg_name + '-' + recordingField
   
-  csvPathname = data_loc + '/' + csv_filename # Full path name of the 
+  csvPathname = thenrun_loc + '/' + csv_filename # Full path name of the 
   recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
 
   session = requests.Session() # Starting HTTP session
@@ -127,18 +253,18 @@ def main():
     try:
       filepath = recordingInfo['location']
       if filepath == '' or filepath == None:
-        filepath = data_loc + '/Call recordings/'
+        filepath = thenrun_loc + '/Call recordings/'
     except:
-      filepath = data_loc + '/Call recordings/'
+      filepath = thenrun_loc + '/Call recordings/'
   except:
     audioFormat = 'wav'
-    filepath = data_loc + '/Call recordings/'
+    filepath = thenrun_loc + '/Call recordings/'
 
   try:
     if not os.path.exists(filepath):
       os.makedirs(filepath)
   except Exception as e:
-    logger.log('Error while creating folder: ' + str(e))
+    log('Error while creating folder: ' + str(e))
   
   for r in recLocs:
     response = session.get(r).json() # Uses the values "r" stored using getFieldValue() as URIs in the GET command
@@ -155,7 +281,7 @@ def main():
 
         # To be added: Use the "recordingSid" to check if the file has already been downloaded, and if so, moves on the the next iteration with "continue" command
       except Exception as e:
-        logger.log('Unable to retrieve recording info: ' + str(e))
+        log('Unable to retrieve recording info: ' + str(e))
         continue
 
       if (encryptionDetails == None) and (audioFormat != 'wav'):
@@ -182,12 +308,14 @@ def main():
         f.write(recordingFile.content) # Actual putting of the file into the folder
 
       if(encryptionDetails != None): # Decryption, if applicable
-        RecordingsDecryptor.decrypt_recording(privateKey, fullpath, encryptionDetails['encrypted_cek'], encryptionDetails['iv'])
+        decrypt_recording(privateKey, fullpath, encryptionDetails['encrypted_cek'], encryptionDetails['iv'])
         # Completed decryption
       
       # end FOR through each recording in the submission
     # end FOR loop through each recording
-  logger.log('Completed download')
+  log('Completed download')
+
+# END MAIN TWILIO FUNCTIONS
 
 if __name__ == "__main__":
 	main()
