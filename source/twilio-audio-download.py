@@ -203,7 +203,7 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
         for row in reader:
           values.append(row[field])
   except FileNotFoundError:
-    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name and group name are correct.')
+    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.')
   except Exception as e:
     log('Error while retrieving CSV file info: ' + str(e))
   return values
@@ -212,8 +212,9 @@ def main():
   log('Starting audio file retrieval')
 
   if not sys.version_info.major == 3:
-    log('Python 3 not installed.')
-    ctypes.windll.user32.MessageBoxW(0, u'Error: The script was not run with Python 3. Make sure the script is set to be run with Python 3. If Python 3 is not installed, go to the Windows Store to install Python 3, then run this script again. You can install it at https://microsoft.com/p/python-38/9mssztt1n39l.', u'Python 3 error', 0x0 | 0x30)
+    log('Error: You are not using Python 3 to run this script.')
+    try:
+      ctypes.windll.user32.MessageBoxW(0, u'Error: The script was not run with Python 3. Make sure the script is set to be run with Python 3. If Python 3 is not installed, go to the Windows Store to install Python 3, then run this script again. You can install it at https://microsoft.com/p/python-38/9mssztt1n39l.', u'Python 3 error', 0x0 | 0x30)
     exit()
 
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
