@@ -18,7 +18,7 @@ This script uses Python 3. To make sure the file will run properly, you will hav
 
 To check your default Python application, open the <a href="https://raw.githubusercontent.com/theomnimax/project/master/check-python.py" download> *check-python.py* file</a> (in this respository under "extras/other-files/"). When you open that file, one of the following situations will occur:  
 **A popup appears stating the Python 3 or above is installed**: Click *OK*, and you are all set. (Python 3.8, 3.7.4, and other versions of Python 3 will work well.)  
-**A popup appears stating a version of Python 2 is installed, or it will appear to be in Chinese**:
+**A popup appears stating a version of Python 2 is installed**:
 1. Click *OK*.
 1. Right-click the *check-python.py* file again, hover over *Open with*, and click *Choose another app*.
 1. Click Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well), checkmark *Always use this app to open .py files*, and click *OK*. If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3* below), then go back to step 2.  
