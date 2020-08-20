@@ -12,17 +12,22 @@ If you run into issues while using this script, see *Troubleshooting* below. If 
 
 First, click [here]() to download a ZIP file of the files you will need, and decompress that file. There will be three files in that folder.
 
-### Using Python
+### Setting up Python
 
 This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it.
 
-To check your default Python application, open the <a href="https://raw.githubusercontent.com/theomnimax/project/master/check-python.py" download> *check-python.py* file</a> (in this respository under "extras/other-files/"). When you open that file, one of the following situations will occur:  
-**A popup appears stating the Python 3 or above is installed**: Click *OK*, and you are all set. (Python 3.8, 3.7.4, and other versions of Python 3 will work well.)  
+To check your default Python application, open the <a href="https://raw.githubusercontent.com/theomnimax/project/master/check-python.py" download> *check-python.py* file</a> (in this respository under "extras/other-files/"). When you open that file, one of the following situations will occur:
+
+**A popup appears stating the Python 3 or above is installed**: Click *OK*, and you are all set. (Python 3.8, 3.7.4, and other versions of Python 3 will work well.)
+
 **A popup appears stating a version of Python 2 is installed**:
 1. Click *OK*.
 1. Right-click the *check-python.py* file again, hover over *Open with*, and click *Choose another app*.
-1. Click Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well), checkmark *Always use this app to open .py files*, and click *OK*. If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3* below), then go back to step 2.  
+1. Click Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well), checkmark *Always use this app to open .py files*, and click *OK*. If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3* below), then go back to step 2.
+
 **You are prompted about which application to use**: Select Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well). If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3* below), then open the Python file again.
+
+<img src="extras/readme-images/in-python3.png" width="294" />
 
 #### Installing Python 3
 
@@ -41,11 +46,7 @@ SurveyCTO Desktop should be properly setup by default, but you can follow these 
 
 To learn more, check our documentation on [automatically executing outside processes](https://docs.surveycto.com/05-exporting-and-publishing-data/02-exporting-data-with-surveycto-desktop/10.outside-processes.html).
 
-### Setting up the files
-
-There are two files that need to be setup: A Python file called "twilio-audio-download.py", and a file called "twilio_settings.ini.template" (the second file will be renamed). Download both of these files from the "source" folder, then follow these steps:
-
-#### Python file
+### Python file
 
 This file does not have to be changed, just put into the correct location.
 
@@ -53,34 +54,36 @@ This file does not have to be changed, just put into the correct location.
 1. Create a new folder called "thenrun".
 1. Move the "twilio-audio-download.py" file to that folder.
 
-#### twilio_settings.ini file
+### twilio_settings.ini file
+
+This file needs to be put into the correct location, and also changed depending on your setup.
 
 1. Navigate to the folder where you will be exporting your CSV data to (the same folder containing the "thenrun" folder).
-1. Move the "twilio_settings.ini.template" file to that folder.
-1. Rename that file to "twilio_settings.ini.template". At the popup, click *OK* to confirm you would like to change the file extension.
+1. Move the "twilio_settings.ini.template" file to that folder (not the "thenrun" folder, but the same folder where the CSV file will be created).
+1. Rename that file to "twilio_settings.ini". At the popup, click *OK* to confirm you would like to change the file extension.
 1. Open the file in a text editor, such as Notepad (double-clicking the file will usually open it in a text editor by default).
 1. Make the needed changes to the "twilio_settings.ini" file (see below).
 1. Save and close the file.
 
 Below are details about the twilio_settings.ini file. Enter the needed information into the file (as mentioned in step 5) so it can run well.
 
-##### key
+#### key
 **path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank.
 
-##### file
+#### file
 This is information about the CSV data file that will be used to retrieve the paths to the audio files.
-**form_title**: The title of the form. Make sure you are using the form title, not the form ID, since the form title is used in the CSV file name.
-**rg_name**: Short for "repeat group name". If the Twilio call field is a repeated field, enter the name of the repeated field. If it is in a nested repeat group, enter the name of the top-level repeat group only.
-**format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format.
-**add_group_name**: Whether the group name is going to be added to the field name. To check this, in SurveyCTO Desktop, go to *Desktop settings* on the bottom-left, then *EXPORT OPTIONS*, and check *Treatment of enclosing groups in exports*. If *Add groups to exported field names* is selected, make this property `True`. Otherwise, it can be left blank.
+**form_title**: The title of the form. Make sure you are using the form title, not the form ID, since the form title is used in the CSV file name.  
+**rg_name**: Short for "repeat group name". If the Twilio call field is a repeated field, enter the name of the repeated field. If it is in a nested repeat group, enter the name of the top-level repeat group only.  
+**format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format.  
+**add_group_name**: Whether the group name is going to be added to the field name. To check this, in SurveyCTO Desktop, go to *Desktop settings* on the bottom-left, then *EXPORT OPTIONS*, and check *Treatment of enclosing groups in exports*. If *Add groups to exported field names* is selected, make this property `True`. Otherwise, it can be left blank.  
 **field**: The name of the field that uses the Twilio field plug-in
 
-##### twilio
-This is information about your Twilio account. Be careful about this data, since these are the credentials used to access call recordings
+#### twilio
+This is information about your Twilio account. Be careful about this data, since these are the credentials used to access call recordings. You can access your account SID and auth token from your [Twilio console](https://www.twilio.com/console).
 
-##### recording
-**location**: Where the recordings will be exported to. If this is left blank, a folder will be created in the export folder called "Call recordings", and the files will be exported there. If the specified folder does not exist, it will be created.
-**format**: Format of the downloaded recordings. This can be either `wav` or `mp3`. Note: Encrypted recordings can only be downloaded in .wav format; if `mp3` is specified, unencrypted recordings will be downloaded in .mp3 format, but encrypted recordings will be downloaded in .wav format.
+#### recording
+**location**: Where the recordings will be exported to. If this is left blank, a folder will be created in the export folder called "Call recordings", and the files will be exported there. If the specified folder does not exist, it will be created.  
+**format**: Format of the downloaded recordings. This can be either `wav` or `mp3`. Note: Encrypted recordings can only be downloaded in .wav format; if `mp3` is specified, unencrypted recordings will be downloaded in .mp3 format, but encrypted recordings will be downloaded in .wav format.  
 
 ## Running on Mac
 
