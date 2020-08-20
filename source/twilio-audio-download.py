@@ -265,18 +265,31 @@ def main():
     try:
       filepath = recordingInfo['location']
       if filepath == '' or filepath == None:
-        filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
+        filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
     except:
-      filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
+      filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
   except:
     audioFormat = 'wav'
-    filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
+    filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
 
   try:
     if not os.path.exists(filepath):
       os.makedirs(filepath)
   except Exception as e:
     log('Error while creating folder: ' + str(e))
+    new_filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+    if filepath == new_filepath: # If it is the default folder name that cannot be created, then there is no alternative folder name, so exiting
+      log('Try specifying an existing folder instead. Exiting...')
+      exit()
+    else:
+      filepath = new_filepath # Since specified folder cannot be created, will use the default path name instead
+      try:
+        if not os.path.exists(filepath):
+          os.makedirs(filepath)
+      except Exception as e:
+        log('Unable to create alternative folder: ' + str(e))
+        log('Exiting...')
+        exit()
   
   for r in recLocs:
     response = session.get(r).json() # Uses the values "r" stored using getFieldValue() as URIs in the GET command
