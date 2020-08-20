@@ -10,6 +10,8 @@ import importlib
 import codecs
 import ctypes
 
+folder_separator = ('/' if sys.platform == 'darwin' else '\\')
+
 # Logging function for error checking
 def log(message, include_time = True):
   current_path = os.path.dirname(os.path.realpath(__file__))
@@ -17,7 +19,7 @@ def log(message, include_time = True):
   if(include_time):
     message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
   print(message)
-  with open(logger_loc + '/recording_log.log', 'a') as f:
+  with open(logger_loc + folder_separator + 'recording_log.log', 'a') as f:
     f.write(message)
 
 # INSTALLATION FUNCTIONS
@@ -139,7 +141,7 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 
 def getConfigInfo():
   try:
-    inifile_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/twilio_settings.ini'
+    inifile_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + folder_separator + 'twilio_settings.ini'
     config = configparser.ConfigParser()
     config.read(inifile_name)
     return config
@@ -247,7 +249,7 @@ def main():
   if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
     recordingField = rg_name + '-' + recordingField
   
-  csvPathname = thenrun_loc + '/' + csv_filename # Full path name of the 
+  csvPathname = thenrun_loc + folder_separator + csv_filename # Full path name of the 
   recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
 
   session = requests.Session() # Starting HTTP session
@@ -262,12 +264,12 @@ def main():
     try:
       filepath = recordingInfo['location']
       if filepath == '' or filepath == None:
-        filepath = thenrun_loc + '/Call recordings/'
+        filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
     except:
-      filepath = thenrun_loc + '/Call recordings/'
+      filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
   except:
     audioFormat = 'wav'
-    filepath = thenrun_loc + '/Call recordings/'
+    filepath = thenrun_loc + folder_separator + '/Call recordings' + folder_separator
 
   try:
     if not os.path.exists(filepath):
@@ -312,6 +314,8 @@ def main():
         fullpath = filename
       elif filepath.endswith('/') or filepath.endswith('\\'):
         fullpath = filepath + filename
+      else:
+        fullpath = filepath + folder_separator + filename
 
       with open(fullpath, 'wb') as f:
         f.write(recordingFile.content) # Actual putting of the file into the folder
