@@ -176,7 +176,7 @@ def getCredentials(config):
   return [sid, authtoken, key]
 
 def getFieldValue(csvLocation, field, data_format): # Returns URIs to the recordings so they can be retrieved
-  values = [] # This will eventually store each URI to access each recording
+  values = [] # This will eventually store each URI to access each recording. It will be a list of lists, where the first value is the recording URI, and the second is the uuid of that submission or repeat instance.
   try:
     with open(csvLocation, 'r', newline='') as csvfile:
       reader = csv.DictReader(csvfile) # Opening the SurveyCTO export CSV file as a dictionary reader
@@ -184,14 +184,16 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
       if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
         for row in reader:
           repeat_num = 0
+          uuid = row['KEY']
           while True:
             repeat_num += 1
             header_name = field + '_' + str(repeat_num)
             try:
-              field_value = row[header_name]
-              if field_value == '':
+              recording_uri = row[header_name]
+              if recording_uri == '':
                 break
-              values.append(field_value)
+              
+              values.append([recording_uri, uuid])
             except:
               break
             # end WHILE
@@ -199,7 +201,9 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
         # end processing data in WIDE format
       else: # Not wide, so must be long format
         for row in reader:
-          values.append(row[field])
+          uuid = row['KEY']
+          recording_uri = row[field]
+          values.append([recording_uri, uuid])
   except FileNotFoundError:
     log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.')
   except Exception as e:
@@ -292,18 +296,22 @@ def main():
         exit()
   
   for r in recLocs:
-    response = session.get(r).json() # Uses the values "r" stored using getFieldValue() as URIs in the GET command
+    recording_uri = r[0]
+    uuid = r[1]
+    response = session.get(recording_uri).json() # Uses the values "r" stored using getFieldValue() as URIs in the GET command
     recordings = response['recordings']
+    recording_number = 0
     for i in recordings: # In the json, 'recordings' is a list, so this iterates through each one. There will usually only be one iteration.
+      recording_number += 1
       try:
         recordingSid = i['sid'] # Id of the recording
         encryptionDetails = i['encryption_details'] # Encryption details, if applicable
 
         # Creating the name of the file
         if encryptionDetails == None:
-          filename = recordingSid + '.' + audioFormat
+          filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '.' + audioFormat # Name is based on the unique identifier of the form or repeat instance. If there are multiple recordings for that field for some reason, it numbers them starting at the second one
         else:
-          filename = recordingSid + '.wav.enc'
+          filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '.wav.enc'
 
         if not (filepath.endswith('/') or filepath.endswith('\\')): # Adds ending slash or backslash if needed
           filepath += folder_separator
@@ -315,7 +323,7 @@ def main():
           if os.path.exists(fullpath):
             continue
         else:
-          decrypted_filename = recordingSid + '-decrypted.wav'
+          decrypted_filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '-decrypted.wav'
           decrypted_fullpath = filepath + decrypted_filename
           if os.path.exists(decrypted_fullpath):
             continue
