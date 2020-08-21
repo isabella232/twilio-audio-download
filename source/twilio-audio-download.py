@@ -191,7 +191,7 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
             try:
               recording_uri = row[header_name]
               if recording_uri == '':
-                break
+                continue
               
               values.append([recording_uri, uuid + '_' + str(repeat_num)])
             except:

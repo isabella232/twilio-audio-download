@@ -2,9 +2,10 @@
 
 With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all calls recorded using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
-This script is currently in beta. It has these limitations
+This script is currently in beta. It has these limitations:
 * The twilio-call field plug-in can only be used on one field, though that field can be a repeated field.
 * It will not work when the twilio-call field plug-in is used in a nested repeated group (i.e. a repeat group within a repeat group).
+* When downloading data in wide format, all repeat instances of the twilio-call field must be [relevant](https://docs.surveycto.com/02-designing-forms/01-core-concepts/08.relevance.html), or it may not download all recordings. If that field is sometimes not relevant, be sure to download your data in long format instead.
 
 If you run into issues while using this script, see *Troubleshooting* below. If you believe you have found an error with the script, email max@surveycto.com; be sure to send the "recording_log.log" file when you do so.
 
@@ -63,7 +64,7 @@ This is information about the CSV data file that will be used to retrieve the pa
 
 **form_title**: The title of the form. Make sure you are using the form title, not the form ID, since the form title is used in the CSV file name.  
 **rg_name**: Short for "repeat group name". If the Twilio call field is a repeated field, enter the name of the repeated field. If it is in a nested repeat group, enter the name of the top-level repeat group only.  
-**format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format.  
+**format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format. ([Further reading](https://docs.surveycto.com/05-exporting-and-publishing-data/01-overview/09.data-format.html))  
 **add_group_name**: Whether the group name is going to be added to the field name. To check this, in SurveyCTO Desktop, go to *Desktop settings* on the bottom-left, then *EXPORT OPTIONS*, and check *Treatment of enclosing groups in exports*. If *Add groups to exported field names* is selected, make this property `True`. Otherwise, it can be left blank.  
 **field**: The name of the field that uses the Twilio field plug-in
 
