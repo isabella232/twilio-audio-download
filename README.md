@@ -11,7 +11,7 @@ If you run into issues while using this script, see *Troubleshooting* below. If 
 
 ## Setup
 
-First, click [here]() to download the ZIP file of the files you will need, and decompress that file. There will be three files in that folder.
+First, click [here](https://github.com/TheOmnimax/twilio-audio-download/raw/master/download-files.zip) to download the ZIP file of the files you will need, and decompress that file. There will be three files in that folder.
 
 ### Setting up Python
 
