@@ -12,7 +12,7 @@ First, click [here]() to download the ZIP file of the files you will need, and d
 
 ### Setting up Python
 
-This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it below Python 3, you will need to install it.
+This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to install it.
 
 #### Installing Python 3 on Windows
 
@@ -24,7 +24,7 @@ Follow these steps if Python 3 needs to be installed.
 #### Installing Python 3 on Mac
 Python 3 can be installed from [this link](https://www.python.org/downloads/release/python-385/). Download and run the macOS installer.
 
-### Setting up SurveyCTO Destkop
+### Setting up SurveyCTO Desktop
 
 SurveyCTO Desktop should be properly setup by default, but you can follow these steps to be sure:
 1. Open SurveyCTO Desktop.
@@ -92,7 +92,7 @@ To check your default Python application, open the *check-python.py* file in the
 
 ## Running Python files on Mac
 
-To run the Python files on Mac, simply change the extention of the file from ".py" to ".command" (if you get a warning about changing the extension, click *Use .command*). Then, whenever that file is opened, it will be run as a Python script in the Terminal.
+To run the Python files on Mac, simply change the extension of the file from ".py" to ".command" (if you get a warning about changing the extension, click *Use .command*). Then, whenever that file is opened, it will be run as a Python script in the Terminal.
 
 <img src="extras/readme-images/use-command.png" />
 
@@ -103,7 +103,7 @@ The first time the file is run, you will likely get a popup saying you need perm
 If you get this popup, perform the following:
 1. Right-click the file.
 1. Hold the *Option* key on your keyboard.
-1. Click *Copy twilio-audio-download.py.command* as Pathname. You can then let go of the *Option* key.
+1. Click *Copy twilio-audio-download.py.command as Pathname*. You can then let go of the *Option* key.
 1. Open a Terminal window. To do so, run a Mac search (shortcut `Cmd + space`), then search for and open "Terminal".
 1. Type `chmod u+x '` (with the space and single-quote at the end), but do not press *Return* yet.
 1. Paste (shortcut `Cmd + v`) in the path name you had copied. Then enter a single quote `'`. Here is an example:
@@ -125,3 +125,9 @@ Something that may happen is that a MacOS terminal window will open each time yo
 If the recordings are not being created, go to the folder where the data is being exported to, and open the "recording_log.log" file. This will give you details about what happened, and what went wrong (time stamps are given in UTC, not local time).
 
 If that file has not been created, check to make sure "thenrun" is turned on in SurveyCTO Desktop, and that Python files are set to be opened using Python 3. If you are still having trouble, paid users can [create a ticket](https://support.surveycto.com/hc/en-us/requests) with SurveyCTO support. All users can also post to the [community forums](https://support.surveycto.com/hc/en-us/community/topics/200604277-Advice-hacks-and-questions-about-using-SurveyCTO).
+
+## Further reading
+
+If you would like to test this yourself, deploy the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) sample form onto your server, perform some test calls, and try using this script to download those recordings.
+
+To learn how to set up Twilio encryption, check out their [documentation](https://www.twilio.com/docs/voice/tutorials/voice-recording-encryption). You can also generate your key pair [using SurveyCTO](https://docs.surveycto.com/02-designing-forms/02-additional-topics/06.encrypting.html).
