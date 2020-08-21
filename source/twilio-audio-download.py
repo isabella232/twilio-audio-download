@@ -10,10 +10,25 @@ import importlib
 import codecs
 import ctypes
 
-folder_separator = ('/' if sys.platform == 'darwin' else '\\')
+platform = sys.platform
+folder_separator = ('/' if platform == 'darwin' else '\\')
+
+def popup(title, message):
+  try:
+    if(platform == 'windows'):
+      ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
+    elif platform == 'darwin':
+      applescript = 'display dialog "' + message + \
+      '" with title "' + title + '" '
+      applescript += 'with icon note buttons {"OK"}'
+
+      print(applescript)
+      subprocess.call("osascript -e '{}'".format(applescript), shell=True)
+  except Exception as e:
+    print(e)
 
 # Logging function for error checking
-def log(message, include_time = True):
+def log(message, show_popup = False, include_time = True):
   current_path = os.path.dirname(os.path.realpath(__file__))
   logger_loc = os.path.dirname(current_path) # Path one level up, log location
   if(include_time):
@@ -21,6 +36,9 @@ def log(message, include_time = True):
   print(message)
   with open(logger_loc + folder_separator + 'recording_log.log', 'a') as f:
     f.write(message)
+  
+  if show_popup == True:
+    popup('Error', 'There was an error downloading the call recordings. Please see the recording_log.log file for details.')
 
 # INSTALLATION FUNCTIONS
 
@@ -36,7 +54,7 @@ def checkInstall(moduleName, packageName=None):
     try:
       install(moduleName)
     except Exception as e:
-      log('Sorry, but the installation failed: ' + str(e))
+      log('Sorry, but the installation failed: ' + str(e), True)
       exit()
     
     # End module not installed
@@ -153,7 +171,7 @@ def getCredentials(config):
     sid = credentials['account_sid']
     authtoken = credentials['auth_token']
   except Exception as e:
-    log('Unable to retrieve Twilio credentials: ' + str(e))
+    log('Unable to retrieve Twilio credentials: ' + str(e), True)
     exit() # No point in continuing if unable to retrieve credentials
     # return ['', '', '']
 
@@ -167,7 +185,7 @@ def getCredentials(config):
     try:
       key = get_private_key(privateKeyPath)
     except Exception as e:
-      log('Error: Unable to process private key:', str(e))
+      log('Error: Unable to process private key:', str(e), True)
       key = ''
   else: # If no path to private key is defined
     key = ''
@@ -207,20 +225,16 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
           recording_uri = row[field]
           values.append([recording_uri, uuid + '_' + str(repeat_num)])
   except FileNotFoundError:
-    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.')
+    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.', True)
   except Exception as e:
-    log('Error while retrieving CSV file info: ' + str(e))
+    log('Error while retrieving CSV file info: ' + str(e), True)
   return values
 
 def main():
   log('Starting audio file retrieval')
 
   if not sys.version_info.major == 3:
-    log('Error: You are not using Python 3 to run this script.')
-    try:
-      ctypes.windll.user32.MessageBoxW(0, u'Error: The script was not run with Python 3. Make sure the script is set to be run with Python 3. If Python 3 is not installed, go to the Windows Store to install Python 3, then run this script again. You can install it at https://microsoft.com/p/python-38/9mssztt1n39l.', u'Python 3 error', 0x0 | 0x30)
-    except:
-      pass
+    log('Error: You are not using Python 3 to run this script.', True)
     exit()
 
   current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
@@ -229,7 +243,7 @@ def main():
 
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
   if (config == ''):
-    log('Config file not found. Exiting.')
+    log('twilio_settings.ini file not found. Exiting.', True)
     exit()
 
   credentials = getCredentials(config) # Retrieve Twilio credentials and private key
@@ -243,7 +257,7 @@ def main():
     add_group_name = csvFileInfo['add_group_name']
     recordingField = csvFileInfo['field']
   except Exception as e:
-    log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e))
+    log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e), True)
     exit()
 
   if data_format == 'wide':
@@ -282,7 +296,7 @@ def main():
     if not os.path.exists(filepath):
       os.makedirs(filepath)
   except Exception as e:
-    log('Error while creating folder: ' + str(e))
+    log('Error while creating folder: ' + str(e), True)
     new_filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
     if filepath == new_filepath: # If it is the default folder name that cannot be created, then there is no alternative folder name, so exiting
       log('Try specifying an existing folder instead. Exiting...')
@@ -293,7 +307,7 @@ def main():
         if not os.path.exists(filepath):
           os.makedirs(filepath)
       except Exception as e:
-        log('Unable to create alternative folder: ' + str(e))
+        log('Unable to create alternative folder: ' + str(e), True)
         log('Exiting...')
         exit()
   
@@ -336,7 +350,7 @@ def main():
         recordingUrl = 'https://api.twilio.com/' + apiVersion + '/Accounts/' + accountSid + '/Recordings/' + recordingSid
 
       except Exception as e:
-        log('Unable to retrieve recording info: ' + str(e))
+        log('Unable to retrieve recording info: ' + str(e), True)
         continue
 
       if (encryptionDetails == None) and (audioFormat != 'wav'):
