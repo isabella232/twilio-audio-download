@@ -296,15 +296,35 @@ def main():
     recordings = response['recordings']
     for i in recordings: # In the json, 'recordings' is a list, so this iterates through each one. There will usually only be one iteration.
       try:
+        recordingSid = i['sid'] # Id of the recording
         encryptionDetails = i['encryption_details'] # Encryption details, if applicable
 
-        # These parts are used to create the URI that can retrieve the recording file
+        # Creating the name of the file
+        if encryptionDetails == None:
+          filename = recordingSid + '.' + audioFormat
+        else:
+          filename = recordingSid + '.wav.enc'
+
+        if not (filepath.endswith('/') or filepath.endswith('\\')): # Adds ending slash or backslash if needed
+          filepath += folder_separator
+        
+        fullpath = filepath + filename #Exactly where the file will be saved to
+
+        # This is so it does not download files it already has
+        if encryptionDetails == None:
+          if os.path.exists(fullpath):
+            continue
+        else:
+          decrypted_filename = recordingSid + '-decrypted.wav'
+          decrypted_fullpath = filepath + decrypted_filename
+          if os.path.exists(decrypted_fullpath):
+            continue
+
+        # These parts are used to create the URI that can retrieve the recording file that have not already been retrieved
         apiVersion = i['api_version']
         accountSid = i['account_sid']
-        recordingSid = i['sid']
         recordingUrl = 'https://api.twilio.com/' + apiVersion + '/Accounts/' + accountSid + '/Recordings/' + recordingSid
 
-        # To be added: Use the "recordingSid" to check if the file has already been downloaded, and if so, moves on the the next iteration with "continue" command
       except Exception as e:
         log('Unable to retrieve recording info: ' + str(e))
         continue
@@ -316,20 +336,6 @@ def main():
         audioFormat = 'wav'
       
       recordingFile = session.get(recordingUrl) # Uses the created URI to retrieve the actual recording
-
-      # Creating the name of the file
-      if encryptionDetails == None:
-        filename = recordingSid + '.' + audioFormat
-      else:
-        filename = recordingSid + '.' + audioFormat + '.enc'
-
-      # Uses the name of the file to create the filepath where the file will be placed
-      if filepath == '':
-        fullpath = filename
-      elif filepath.endswith('/') or filepath.endswith('\\'):
-        fullpath = filepath + filename
-      else:
-        fullpath = filepath + folder_separator + filename
 
       with open(fullpath, 'wb') as f:
         f.write(recordingFile.content) # Actual putting of the file into the folder
