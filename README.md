@@ -2,7 +2,9 @@
 
 With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all calls recorded using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
-This script is currently in beta. It also has the limitation that it will not work when the twilio-call field plug-in is used in a nested repeated group (i.e. a repeat group within a repeat group).
+This script is currently in beta. It has these limitations
+* The twilio-call field plug-in can only be used on one field, though that field can be a repeated field.
+* It will not work when the twilio-call field plug-in is used in a nested repeated group (i.e. a repeat group within a repeat group).
 
 If you run into issues while using this script, see *Troubleshooting* below. If you believe you have found an error with the script, email max@surveycto.com; be sure to send the "recording_log.log" file when you do so.
 
