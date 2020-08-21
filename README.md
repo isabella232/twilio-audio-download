@@ -58,6 +58,7 @@ Below are details about the twilio_settings.ini file. Enter the needed informati
 
 #### file
 This is information about the CSV data file that will be used to retrieve the paths to the audio files.
+
 **form_title**: The title of the form. Make sure you are using the form title, not the form ID, since the form title is used in the CSV file name.  
 **rg_name**: Short for "repeat group name". If the Twilio call field is a repeated field, enter the name of the repeated field. If it is in a nested repeat group, enter the name of the top-level repeat group only.  
 **format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format.  
@@ -105,14 +106,13 @@ If you get this popup, perform the following:
 1. Click *Copy twilio-audio-download.py.command* as Pathname. You can then let go of the *Option* key.
 1. Open a Terminal window. To do so, run a Mac search (shortcut `Cmd + space`), then search for and open "Terminal".
 1. Type `chmod u+x '` (with the space and single-quote at the end), but do not press *Return* yet.
-1. Paste (shortcut `Cmd + v`) in the path name you had copied. Then enter a single quote `'` It will look something like this:
-
-    chmod u+x '/Users/username/Documents/Data exports/thenrun/twilio-audio-download.command'
-
+1. Paste (shortcut `Cmd + v`) in the path name you had copied. Then enter a single quote `'`. Check out the example below these steps.
 1. Press *Return* on your keyboard.
 1. Close the Terminal window.
 
-Now, whenever you run that file, it should run well.
+Now, whenever you run that file, it should run well. Here is an example of the command:
+
+    chmod u+x '/Users/username/Documents/Data exports/thenrun/twilio-audio-download.command'
 
 Something that may happen is that a MacOS terminal window will open each time you run the script. You can close this yourself each time, but you can also set it to close automatically:
 1. Open the Terminal.
