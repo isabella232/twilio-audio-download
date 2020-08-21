@@ -184,7 +184,7 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
       if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
         for row in reader:
           repeat_num = 0
-          uuid = row['KEY']
+          uuid = row['KEY'][5:] # uuid after the "uuid:" part
           while True:
             repeat_num += 1
             header_name = field + '_' + str(repeat_num)
@@ -193,17 +193,19 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
               if recording_uri == '':
                 break
               
-              values.append([recording_uri, uuid])
+              values.append([recording_uri, uuid + '_' + str(repeat_num)])
             except:
               break
             # end WHILE
           # end FOR
         # end processing data in WIDE format
       else: # Not wide, so must be long format
+        repeat_num = 0
         for row in reader:
-          uuid = row['KEY']
+          repeat_num += 1
+          uuid = row['PARENT_KEY']
           recording_uri = row[field]
-          values.append([recording_uri, uuid])
+          values.append([recording_uri, uuid + '_' + str(repeat_num)])
   except FileNotFoundError:
     log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.')
   except Exception as e:
