@@ -1,6 +1,10 @@
+#!/usr/bin/python3
+
 import sys
 import subprocess
 import ctypes
+
+platform = sys.platform
 
 version_all = sys.version_info
 version_num = str(version_all.major) + '.' + str(version_all.minor) + '.' + str(version_all.micro)
@@ -11,6 +15,15 @@ if version_all.major < 3:
   title = unicode(title)
 
 print(message)
-
 try:
-  ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
+  if(platform == 'windows'):
+    ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
+  elif platform == 'darwin':
+    applescript = 'display dialog "' + message + \
+    '" with title "' + title + '" '
+    applescript += 'with icon note buttons {"OK"}'
+
+    print(applescript)
+    subprocess.call("osascript -e '{}'".format(applescript), shell=True)
+except Exception as e:
+  print(e)
