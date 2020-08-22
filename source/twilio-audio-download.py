@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import sys
-import json
 import os
 import csv
 from time import gmtime, strftime
