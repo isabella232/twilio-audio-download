@@ -201,7 +201,19 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
       num_found = 0 # Number of URIs found
 
       if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
+
+        
         for row in reader:
+          try: # First check to see if it exists as a non-repeating field
+            recording_uri = row[field]
+            if recording_uri != '':
+              num_found += 1
+              values.append([recording_uri, uuid + '_' + str(repeat_num)])
+          except KeyError:
+            pass
+          except Exception as e:
+            log('Error while looking for non-repeating field: ' + str(e))
+
           repeat_num = 0
           uuid = row['KEY'][5:] # uuid after the "uuid:" part
           while True:
