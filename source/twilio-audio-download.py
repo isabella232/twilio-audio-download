@@ -22,10 +22,9 @@ def popup(title, message):
       '" with title "' + title + '" '
       applescript += 'with icon note buttons {"OK"}'
 
-      print(applescript)
       subprocess.call("osascript -e '{}'".format(applescript), shell=True)
   except Exception as e:
-    print(e)
+    log('Error while creating popup:' + str(e))
 
 # Logging function for error checking
 def log(message, show_popup = False, include_time = True):
@@ -38,7 +37,7 @@ def log(message, show_popup = False, include_time = True):
     f.write(message)
   
   if show_popup == True:
-    popup('Error', 'There was an error downloading the call recordings. Please see the recording_log.log file for details.')
+    popup('Error', 'There was an issue while downloading the call recordings. Please see the recording_log.log file for details.')
 
 # INSTALLATION FUNCTIONS
 
@@ -199,6 +198,8 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
     with open(csvLocation, 'r', newline='') as csvfile:
       reader = csv.DictReader(csvfile) # Opening the SurveyCTO export CSV file as a dictionary reader
 
+      num_found = 0 # Number of URIs found
+
       if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
         for row in reader:
           repeat_num = 0
@@ -211,6 +212,7 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
               if recording_uri == '':
                 continue
               
+              num_found += 1
               values.append([recording_uri, uuid + '_' + str(repeat_num)])
             except:
               break
@@ -223,11 +225,17 @@ def getFieldValue(csvLocation, field, data_format): # Returns URIs to the record
           repeat_num += 1
           uuid = row['PARENT_KEY']
           recording_uri = row[field]
+          num_found += 1
           values.append([recording_uri, uuid + '_' + str(repeat_num)])
   except FileNotFoundError:
     log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.', True)
   except Exception as e:
     log('Error while retrieving CSV file info: ' + str(e), True)
+
+  if num_found == 0:
+    log('No recordings were found. Make sure the CSV data contains a column called "' + field + '" or "' + field + '_1". You may also want to make sure all of the [file] properties in the "twilio_settings.ini" file are correct.', True)
+    exit()
+
   return values
 
 def main():
@@ -270,7 +278,8 @@ def main():
   if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
     recordingField = rg_name + '-' + recordingField
   
-  csvPathname = thenrun_loc + folder_separator + csv_filename # Full path name of the 
+  csvPathname = thenrun_loc + folder_separator + csv_filename # Full path name to the CSV file
+
   recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
 
   session = requests.Session() # Starting HTTP session
