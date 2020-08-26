@@ -8,9 +8,16 @@ import subprocess
 import importlib
 import codecs
 import ctypes
+import re
+import glob
 
 platform = sys.platform
 folder_separator = ('/' if platform == 'darwin' else '\\')
+current_path = os.path.realpath(__file__)
+file_folder = os.path.dirname(current_path)
+working_folder = os.path.dirname(file_folder) + folder_separator # This is the folder with the CSV file, the log file, and most of the other files we'll be working with
+os.chdir(working_folder)
+
 
 def popup(title, message):
   try:
@@ -27,16 +34,14 @@ def popup(title, message):
 
 # Logging function for error checking
 def log(message, show_popup = False, include_time = True):
-  current_path = os.path.dirname(os.path.realpath(__file__))
-  logger_loc = os.path.dirname(current_path) # Path one level up, log location
   if(include_time):
     message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
   print(message)
-  with open(logger_loc + folder_separator + 'recording_log.log', 'a') as f:
+  with open(working_folder + 'recording.log', 'a') as f:
     f.write(message)
   
   if show_popup == True:
-    popup('Error', 'There was an issue while downloading the call recordings. Please see the recording_log.log file for details.')
+    popup('Error', 'There was an issue while downloading the call recordings. Please see the recording.log file for details.')
 
 # INSTALLATION FUNCTIONS
 
@@ -191,62 +196,59 @@ def getCredentials(config):
   # End found a path for the key
   return [sid, authtoken, key]
 
-def getFieldValue(csvLocation, field, data_format): # Returns URIs to the recordings so they can be retrieved
+def getFieldValue(csvLocations): # Returns URIs to the recordings so they can be retrieved
+  header_start = 'twilio_call_recordings_url' # This is stored in a var in case we want to customize it more later
+  header_start_len = len(header_start)
   values = [] # This will eventually store each URI to access each recording. It will be a list of lists, where the first value is the recording URI, and the second is the uuid of that submission or repeat instance.
-  try:
-    with open(csvLocation, 'r', newline='') as csvfile:
-      reader = csv.DictReader(csvfile) # Opening the SurveyCTO export CSV file as a dictionary reader
 
-      num_found = 0 # Number of URIs found
+  for csv_file in csvLocations:
+    with open(csv_file, 'r') as f:
+      reader = csv.reader(f)
+      all_headers = next(reader) # Retrieves the columns headers
+    
+    if 'PARENT_KEY' in all_headers:
+      long_format = True
+    else:
+      long_format = False
 
-      if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
+    uri_headers = []
+    for header in all_headers:
+      if re.match(header_start, header) != None:
+        uri_headers.append(header) # Adds header to the list of URI headers if it starts with 'twilio_call_recordings_url'
 
-        
-        for row in reader:
-          try: # First check to see if it exists as a non-repeating field
-            recording_uri = row[field]
-            if recording_uri != '':
-              num_found += 1
-              values.append([recording_uri, uuid + '_' + str(repeat_num)])
-          except KeyError:
-            pass
+    with open(csv_file, 'r', newline='') as opened_csv:
+      reader = csv.DictReader(opened_csv)
+
+      for row in reader:
+        full_uuid = row['KEY']
+        uuid_simp = full_uuid[5:41]
+        if long_format: # If is is in long format, then the file name can contain group name and instance information
+          try:
+            row_group_name = re.search('(?<=\/)[^\[]+', full_uuid).group(0) # Group name of for the row
+            repeat_instance = re.search('(?<=\[)[^\]]+', full_uuid).group(0) # Repeat instance number
+            filename_prefix = uuid_simp + '-' + row_group_name + '_' + repeat_instance
           except Exception as e:
-            log('Error while looking for non-repeating field: ' + str(e))
+            log('Issue getting KEY info, may not have all downloaded all recordings: ' + str(e))
+            filename_prefix = uuid_simp
+        else:# If is is in wide format, then the file name can only contain instance information
+          filename_prefix = uuid_simp
 
-          repeat_num = 0
-          uuid = row['KEY'][5:] # uuid after the "uuid:" part
-          while True:
-            repeat_num += 1
-            header_name = field + '_' + str(repeat_num)
-            try:
-              recording_uri = row[header_name]
-              if recording_uri == '':
-                continue
-              
-              num_found += 1
-              values.append([recording_uri, uuid + '_' + str(repeat_num)])
-            except:
-              break
-            # end WHILE
-          # end FOR
-        # end processing data in WIDE format
-      else: # Not wide, so must be long format
-        repeat_num = 0
-        for row in reader:
-          repeat_num += 1
-          uuid = row['PARENT_KEY']
-          recording_uri = row[field]
-          num_found += 1
-          values.append([recording_uri, uuid + '_' + str(repeat_num)])
-  except FileNotFoundError:
-    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.', True)
-  except Exception as e:
-    log('Error while retrieving CSV file info: ' + str(e), True)
+        for uri_header in uri_headers:
+          header_suffix = uri_header[header_start_len:]
+          field_value = row[uri_header]
+          if (field_value == '') or (field_value == None): # If nothing found, continue to the next header
+            continue
+          
+          recording_filename = filename_prefix + header_suffix
+          values.append([field_value, recording_filename])
+          # Done checking the header
+        # Done checking the row
+      # Done opening the file
+    # Done with the file name
 
-  if num_found == 0:
-    log('No recordings were found. Make sure the CSV data contains a column called "' + field + '" or "' + field + '_1". You may also want to make sure all of the [file] properties in the "twilio_settings.ini" file are correct.', True)
+  if len(values) == 0:
+    log('No recordings found in CSV file')
     exit()
-
   return values
 
 def main():
@@ -268,30 +270,9 @@ def main():
   credentials = getCredentials(config) # Retrieve Twilio credentials and private key
   sid, authtoken, privateKey = [credentials[i] for i in range(0, 3)]
 
-  try:
-    csvFileInfo = config['file'] # Retrieves info about the CSV data export
-    form_title = csvFileInfo['form_title'] # Form title, which is used in the CSV file name
-    rg_name = csvFileInfo['rg_name'] # Repeat group name
-    data_format = csvFileInfo['format'] # Whether the data is in long or wide format. Will assume long if not specified
-    add_group_name = csvFileInfo['add_group_name']
-    recordingField = csvFileInfo['field']
-  except Exception as e:
-    log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e), True)
-    exit()
+  all_csv_files = glob.glob("*.csv") # Retrieve a list of all CSV files in the folder.
 
-  if data_format == 'wide':
-    csv_filename = form_title + '_WIDE.csv' # If the export is wide format
-  elif rg_name == '':
-    csv_filename = form_title + '.csv' # If the export is long, but not in a repeat group
-  else:
-    csv_filename = form_title + '-' + rg_name + '.csv' # If the export is wide, and the calling field is in a repeat group
-
-  if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
-    recordingField = rg_name + '-' + recordingField
-  
-  csvPathname = thenrun_loc + folder_separator + csv_filename # Full path name to the CSV file
-
-  recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
+  recLocs = getFieldValue(all_csv_files) # Returns a list of all call recordings
 
   session = requests.Session() # Starting HTTP session
   session.auth = (sid, authtoken)
