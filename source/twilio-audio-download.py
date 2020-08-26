@@ -160,9 +160,8 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 
 def getConfigInfo():
   try:
-    inifile_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + folder_separator + 'twilio_settings.ini'
     config = configparser.ConfigParser()
-    config.read(inifile_name)
+    config.read('twilio_settings.ini')
     return config
   except:
     return ''
@@ -258,10 +257,6 @@ def main():
     log('Error: You are not using Python 3 to run this script.', True)
     exit()
 
-  current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
-  thenrun_loc = os.path.dirname(current_loc) # Pathname of the "thenrun" folder
-  # data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
-
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
   if (config == ''):
     log('twilio_settings.ini file not found. Exiting.', True)
@@ -286,19 +281,19 @@ def main():
     try:
       filepath = recordingInfo['location']
       if filepath == '' or filepath == None:
-        filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+        filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
     except:
-      filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+      filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
   except:
     audioFormat = 'wav'
-    filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+    filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
 
   try:
     if not os.path.exists(filepath):
       os.makedirs(filepath)
   except Exception as e:
     log('Error while creating folder: ' + str(e), True)
-    new_filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+    new_filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
     if filepath == new_filepath: # If it is the default folder name that cannot be created, then there is no alternative folder name, so exiting
       log('Try specifying an existing folder instead. Exiting...')
       exit()
