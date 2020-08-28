@@ -129,18 +129,23 @@ If the recordings are not being created, go to the folder where the data is bein
 
 If that file has not been created, check to make sure "thenrun" is turned on in SurveyCTO Desktop, and that Python files are set to be opened using Python 3. If you are still having trouble, paid users can [create a ticket](https://support.surveycto.com/hc/en-us/requests) with SurveyCTO support. All users can also post to the [community forums](https://support.surveycto.com/hc/en-us/community/topics/200604277-Advice-hacks-and-questions-about-using-SurveyCTO).
 
-## File format
+## File names
 
-The audio files will have the following format:
+The audio files will have the following format for their names:
 1. Start with the unique identifier of the form instance after the "uuid:" part
+1. Whatever comes after came after "twilio_call_recordings_url" in the original field name (or whatever the value of "field_name" is in the twilio_settings.ini file). For example, If the field name is "the_twilio_call_recordings_url_here", then the extracted part will be "_here".
 1. Underscore `_`
-1. Repeat instance number
-1. Followed by `-decrypted` if that recording was previously encrypted.
+1. The group number
+1. `-decrypted` if that recording was previously encrypted.
 1. File extention
 
 For example, if the form instance with the unique identifier "uuid:5584c690-5682-4d71-95f4-973d242a1046", and the calls are encypted, the second recording would have this file name:
 
     5584c690-5682-4d71-95f4-973d242a1046_2-decrypted.wav
+
+In addition, if the file name has already been used by the Python script, then it will add a number in parantheses to the file name to differentiate it, like this:
+
+    5584c690-5682-4d71-95f4-973d242a1046_2 (1).wav
 
 ## Further reading
 
