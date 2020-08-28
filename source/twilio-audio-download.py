@@ -8,9 +8,18 @@ import subprocess
 import importlib
 import codecs
 import ctypes
+import re
+import glob
+
 
 platform = sys.platform
 folder_separator = ('/' if platform == 'darwin' else '\\')
+current_path = os.path.realpath(__file__)
+file_folder = os.path.dirname(current_path)
+working_folder = os.path.dirname(file_folder) + folder_separator # This is the folder with the CSV file, the log file, and most of the other files we'll be working with
+os.chdir(working_folder)
+
+error_popup = False
 
 def popup(title, message):
   try:
@@ -27,16 +36,14 @@ def popup(title, message):
 
 # Logging function for error checking
 def log(message, show_popup = False, include_time = True):
-  current_path = os.path.dirname(os.path.realpath(__file__))
-  logger_loc = os.path.dirname(current_path) # Path one level up, log location
   if(include_time):
     message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
   print(message)
-  with open(logger_loc + folder_separator + 'recording_log.log', 'a') as f:
+  with open(working_folder + 'recording.log', 'a') as f:
     f.write(message)
   
   if show_popup == True:
-    popup('Error', 'There was an issue while downloading the call recordings. Please see the recording_log.log file for details.')
+    error_popup = True # For showing popup at the end if there is an error that warrants one.
 
 # INSTALLATION FUNCTIONS
 
@@ -155,9 +162,8 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 
 def getConfigInfo():
   try:
-    inifile_name = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + folder_separator + 'twilio_settings.ini'
     config = configparser.ConfigParser()
-    config.read(inifile_name)
+    config.read('twilio_settings.ini')
     return config
   except:
     return ''
@@ -191,62 +197,76 @@ def getCredentials(config):
   # End found a path for the key
   return [sid, authtoken, key]
 
-def getFieldValue(csvLocation, field, data_format): # Returns URIs to the recordings so they can be retrieved
-  values = [] # This will eventually store each URI to access each recording. It will be a list of lists, where the first value is the recording URI, and the second is the uuid of that submission or repeat instance.
-  try:
-    with open(csvLocation, 'r', newline='') as csvfile:
-      reader = csv.DictReader(csvfile) # Opening the SurveyCTO export CSV file as a dictionary reader
+def getFieldValue(csvLocations, fieldname): # Returns URIs to the recordings so they can be retrieved
+  fieldname_len = len(fieldname)
+  values = {} # This will eventually store each URI to access each recording. In this dictionary, name of the property will be the file name, to make sure file names are not repeated
 
-      num_found = 0 # Number of URIs found
+  for csv_file in csvLocations:
+    with open(csv_file, 'r') as f:
+      reader = csv.reader(f)
+      all_headers = next(reader) # Retrieves the columns headers
+    
+    if 'PARENT_KEY' in all_headers:
+      long_format = True
+    else:
+      long_format = False
 
-      if data_format == 'wide': # If it is in wide format, then checks each possible field header in numeric order. For example, if the field used for Twilio calls is called "twilio_call", then it will first check for the header "twilio_call_1", then "twilio_call_2", and so on. This will end prematurely if one is missing. For example, if "twilio_call_3" does not exist, then it will not bother to check for "twilio_call_4". It also does not work with nested repeats. In those cases, long format should be used.
+    uri_headers = []
+    for header in all_headers:
+      regex = re.search(fieldname, header, re.IGNORECASE) # Search for the field name, ignoring case
+      if regex != None:
+        uri_headers.append([header, regex.end(0)]) # Adds header to the list of URI headers if it contains the field name, default 'twilio_call_recordings_url'. Also adds when it ends, which is used later.
 
-        
-        for row in reader:
-          try: # First check to see if it exists as a non-repeating field
-            recording_uri = row[field]
-            if recording_uri != '':
-              num_found += 1
-              values.append([recording_uri, uuid + '_' + str(repeat_num)])
-          except KeyError:
-            pass
+    with open(csv_file, 'r', newline='') as opened_csv:
+      reader = csv.DictReader(opened_csv)
+
+      for row in reader:
+        full_uuid = row['KEY']
+        uuid_simp = full_uuid[5:41]
+        if long_format: # If is is in long format, then the file name can contain group name and instance information
+          try:
+            row_group_name = re.search('(?<=\/)[^\[]+', full_uuid).group(0) # Group name of for the row
+            repeat_instance = re.search('(?<=\[)[^\]]+', full_uuid).group(0) # Repeat instance number
+            filename_prefix = uuid_simp + '-' + row_group_name + '_' + repeat_instance
           except Exception as e:
-            log('Error while looking for non-repeating field: ' + str(e))
+            log('Issue getting KEY info, may not have all downloaded all recordings: ' + str(e))
+            filename_prefix = uuid_simp
+        else:# If is is in wide format, then the file name can only contain instance information
+          filename_prefix = uuid_simp
 
-          repeat_num = 0
-          uuid = row['KEY'][5:] # uuid after the "uuid:" part
-          while True:
-            repeat_num += 1
-            header_name = field + '_' + str(repeat_num)
+        for u in uri_headers:
+          uri_header = u[0]
+          end_pos = u[1]
+          header_suffix = uri_header[end_pos:] # Suffix starts when the text that was searched for (default 'twilio_call_recordings_url') ends. For example, if header is called 'this_twilio_call_recordings_url_123', then the value of header_suffix will be '_123'.
+          field_value = row[uri_header]
+          if (re.fullmatch('https:\/\/api\.twilio\.com\/2010-04-01\/Accounts\/AC[a-z\d]+\/Calls\/CA[a-z\d]+\/Recordings.json', field_value) == None): # If not in correct format, then move on to the next value
+            continue
+          
+          recording_filename = filename_prefix + header_suffix
+          
+          field_num = 0
+          name_ending = '' # This will be (1), (2), so on. Starts blank, since if there are no name doubles, then no need to add this
+          while field_num < 20: # This is for checking if the file name is already being used
             try:
-              recording_uri = row[header_name]
-              if recording_uri == '':
-                continue
-              
-              num_found += 1
-              values.append([recording_uri, uuid + '_' + str(repeat_num)])
+              values[recording_filename + name_ending] # Hopefully, this fails, meaning the file name does not exist. If it does now fail, add to var "field_num", and try with that
             except:
+              if field_num != 0:
+                recording_filename += name_ending # If the file name created is already being used, adds a number to differentiate it
+              values[recording_filename] = field_value
               break
-            # end WHILE
-          # end FOR
-        # end processing data in WIDE format
-      else: # Not wide, so must be long format
-        repeat_num = 0
-        for row in reader:
-          repeat_num += 1
-          uuid = row['PARENT_KEY']
-          recording_uri = row[field]
-          num_found += 1
-          values.append([recording_uri, uuid + '_' + str(repeat_num)])
-  except FileNotFoundError:
-    log('There is no file at \'' + csvLocation + '\'. Check the twilio_settings.ini file to make sure the form name, and group name, and download format are correct.', True)
-  except Exception as e:
-    log('Error while retrieving CSV file info: ' + str(e), True)
+            field_num += 1
+            name_ending = ' (' + str(field_num) + ')'
+            # End while through numbers
+          if field_num == 20:
+            log('There were too many fields that contain "' + fieldname + '" in their name, so not all recordings have been downloaded.', True)
+          # Done checking the header
+        # Done checking the row
+      # Done opening the file
+    # Done with the file name
 
-  if num_found == 0:
-    log('No recordings were found. Make sure the CSV data contains a column called "' + field + '" or "' + field + '_1". You may also want to make sure all of the [file] properties in the "twilio_settings.ini" file are correct.', True)
+  if len(values) == 0:
+    log('No recordings found in CSV file')
     exit()
-
   return values
 
 def main():
@@ -256,10 +276,6 @@ def main():
     log('Error: You are not using Python 3 to run this script.', True)
     exit()
 
-  current_loc = os.path.dirname(os.path.realpath(__file__)) # Pathname of this file
-  thenrun_loc = os.path.dirname(current_loc) # Pathname of the "thenrun" folder
-  # data_loc = os.path.dirname(thenrun_loc) # Pathname of the CSV file where the data is being exported to.
-
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
   if (config == ''):
     log('twilio_settings.ini file not found. Exiting.', True)
@@ -268,30 +284,14 @@ def main():
   credentials = getCredentials(config) # Retrieve Twilio credentials and private key
   sid, authtoken, privateKey = [credentials[i] for i in range(0, 3)]
 
+  all_csv_files = glob.glob("*.csv") # Retrieve a list of all CSV files in the folder.
+
   try:
-    csvFileInfo = config['file'] # Retrieves info about the CSV data export
-    form_title = csvFileInfo['form_title'] # Form title, which is used in the CSV file name
-    rg_name = csvFileInfo['rg_name'] # Repeat group name
-    data_format = csvFileInfo['format'] # Whether the data is in long or wide format. Will assume long if not specified
-    add_group_name = csvFileInfo['add_group_name']
-    recordingField = csvFileInfo['field']
-  except Exception as e:
-    log('Unable to retrieve info about the CSV file. Check to make sure each part is present, even if they are blank: ' + str(e), True)
-    exit()
+    recording_fieldname = config['file']['field_name']
+  except:
+    recording_fieldname = 'twilio_call_recordings_url'
 
-  if data_format == 'wide':
-    csv_filename = form_title + '_WIDE.csv' # If the export is wide format
-  elif rg_name == '':
-    csv_filename = form_title + '.csv' # If the export is long, but not in a repeat group
-  else:
-    csv_filename = form_title + '-' + rg_name + '.csv' # If the export is wide, and the calling field is in a repeat group
-
-  if (add_group_name == 'True') and (rg_name != None): # Adds the group name to the field name if applicable
-    recordingField = rg_name + '-' + recordingField
-  
-  csvPathname = thenrun_loc + folder_separator + csv_filename # Full path name to the CSV file
-
-  recLocs = getFieldValue(csvPathname, recordingField, data_format) # Returns a list of all call recordings
+  recLocs = getFieldValue(all_csv_files, recording_fieldname) # Returns a list of all call recordings
 
   session = requests.Session() # Starting HTTP session
   session.auth = (sid, authtoken)
@@ -305,19 +305,19 @@ def main():
     try:
       filepath = recordingInfo['location']
       if filepath == '' or filepath == None:
-        filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+        filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
     except:
-      filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+      filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
   except:
     audioFormat = 'wav'
-    filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+    filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
 
   try:
     if not os.path.exists(filepath):
       os.makedirs(filepath)
   except Exception as e:
     log('Error while creating folder: ' + str(e), True)
-    new_filepath = thenrun_loc + folder_separator + 'Call recordings' + folder_separator
+    new_filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
     if filepath == new_filepath: # If it is the default folder name that cannot be created, then there is no alternative folder name, so exiting
       log('Try specifying an existing folder instead. Exiting...')
       exit()
@@ -331,35 +331,46 @@ def main():
         log('Exiting...')
         exit()
   
-  for r in recLocs:
-    recording_uri = r[0]
-    uuid = r[1]
-    response = session.get(recording_uri).json() # Uses the values "r" stored using getFieldValue() as URIs in the GET command
+  for base_filename in recLocs:
+    recording_uri = recLocs[base_filename]
+
+    try:
+      raw_response = session.get(recording_uri)
+      response = raw_response.json()
+    except Exception as e:
+      log('Unable to retrieve recording: ' + str(e), True)
+      continue
+
     recordings = response['recordings']
     recording_number = 0
+    num_recordings = len(recordings)
     for i in recordings: # In the json, 'recordings' is a list, so this iterates through each one. There will usually only be one iteration.
-      recording_number += 1
+      if num_recordings > 1:
+        recording_number += 1
+        filename = base_filename + '_' + str(num_recordings)
+      else:
+        filename = base_filename
       try:
         recordingSid = i['sid'] # Id of the recording
         encryptionDetails = i['encryption_details'] # Encryption details, if applicable
 
         # Creating the name of the file
         if encryptionDetails == None:
-          filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '.' + audioFormat # Name is based on the unique identifier of the form or repeat instance. If there are multiple recordings for that field for some reason, it numbers them starting at the second one
+          filename = filename + '.' + audioFormat # Name is based on the unique identifier of the form or repeat instance. If there are multiple recordings for that field for some reason, it numbers them starting at the second one
         else:
-          filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '.wav.enc'
+          filename = filename + '.wav.enc'
 
         if not (filepath.endswith('/') or filepath.endswith('\\')): # Adds ending slash or backslash if needed
           filepath += folder_separator
         
-        fullpath = filepath + filename #Exactly where the file will be saved to
+        fullpath = filepath + filename # Exactly where the file will be saved to
 
         # This is so it does not download files it already has
         if encryptionDetails == None:
           if os.path.exists(fullpath):
             continue
         else:
-          decrypted_filename = uuid + ('-' + str(recording_number) if recording_number != 1 else '') + '-decrypted.wav'
+          decrypted_filename = filename + '-decrypted.wav'
           decrypted_fullpath = filepath + decrypted_filename
           if os.path.exists(decrypted_fullpath):
             continue
@@ -391,6 +402,8 @@ def main():
       # end FOR through each recording in the submission
     # end FOR loop through each recording
   log('Completed download')
+  if error_popup:
+    popup('Error', 'There was an issue while downloading the call recordings. Please see the recording.log file for details.')
 
 # END MAIN TWILIO FUNCTIONS
 
