@@ -1,7 +1,10 @@
 [key]
 path: C:\Users\username\Documents\Keys\my_key_PRIVATEDONOTSHARE.pem
 
-[twilio]     
+[file]
+field_name: twilio_call_recordings_url
+
+[twilio]
 account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
