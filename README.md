@@ -14,7 +14,9 @@ First, click [here](https://github.com/TheOmnimax/twilio-audio-download/raw/mast
 
 ### Setting up Python
 
-This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to associate Python files with Python 3, and possibly install it if needed. Make sure you check if Python 3 is already installed before trying to install it, if applicable
+This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to associate Python files with Python 3, and possibly install it if needed. Make sure you check if Python 3 is already installed before trying to install it, if applicable.
+
+Note: This script has only been tested on Windows and MacOS. If you would like to use this script on Linux, feel free to fork it and make any needed changes. It may already work on Linux, but the error popup (see [Troubleshooting](#troubleshooting)) will only work on Windows and MacOS.
 
 #### Installing Python 3 on Windows
 
@@ -131,7 +133,7 @@ Something that may happen is that a MacOS terminal window will open each time yo
 <img src="extras/readme-images/terminal-settings.png" width="324" />
 
 ## Troubleshooting
-If the recordings are not being created, go to the folder where the data is being exported to, and open the "recording_log.log" file. This will give you details about what happened, and what went wrong (time stamps are given in UTC, not local time).
+If there is an error during the script , a popup will appear, stating that there is an error. If this happens, go to the folder where the data is being exported to, and open the "recording_log.log" file. This will give you details about what happened, and what went wrong (time stamps are given in UTC, not local time).
 
 If that file has not been created, check to make sure "thenrun" is turned on in SurveyCTO Desktop, and that Python files are set to be opened using Python 3. If you are still having trouble, paid users can [create a ticket](https://support.surveycto.com/hc/en-us/requests) with SurveyCTO support. All users can also post to the [community forums](https://support.surveycto.com/hc/en-us/community/topics/200604277-Advice-hacks-and-questions-about-using-SurveyCTO).
 

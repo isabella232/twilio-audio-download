@@ -13,7 +13,8 @@ import glob
 
 
 platform = sys.platform
-folder_separator = ('/' if platform == 'darwin' else '\\')
+folder_separator = ('/' if platform.startswith('darwin') or platform.startswith('linux') else '\\')
+
 current_path = os.path.realpath(__file__)
 file_folder = os.path.dirname(current_path)
 working_folder = os.path.dirname(file_folder) + folder_separator # This is the folder with the CSV file, the log file, and most of the other files we'll be working with
