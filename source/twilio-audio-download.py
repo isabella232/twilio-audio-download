@@ -23,7 +23,7 @@ error_popup = False
 
 def popup(title, message):
   try:
-    if(platform == 'windows'):
+    if platform == 'windows':
       ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
     elif platform == 'darwin':
       applescript = 'display dialog "' + message + \
@@ -36,7 +36,7 @@ def popup(title, message):
 
 # Logging function for error checking
 def log(message, show_popup = False, include_time = True):
-  if(include_time):
+  if include_time:
     message = strftime('[%Y %b %d %H:%M:%S] ', gmtime()) + message + '\n'
   print(message)
   with open(working_folder + 'recording.log', 'a') as f:
@@ -189,7 +189,7 @@ def getCredentials(config):
     key = ''
     # End no path given
   
-  if (privateKeyPath != ''):
+  if privateKeyPath != '':
     try:
       key = get_private_key(privateKeyPath)
     except Exception as e:
@@ -243,7 +243,7 @@ def getFieldValue(csvLocations, fieldname): # Returns URIs to the recordings so 
           end_pos = u[1]
           header_suffix = uri_header[end_pos:] # Suffix starts when the text that was searched for (default 'twilio_call_recordings_url') ends. For example, if header is called 'this_twilio_call_recordings_url_123', then the value of header_suffix will be '_123'.
           field_value = row[uri_header]
-          if (re.fullmatch('https:\/\/api\.twilio\.com\/2010-04-01\/Accounts\/AC[a-z\d]+\/Calls\/CA[a-z\d]+\/Recordings.json', field_value) == None): # If not in correct format, then move on to the next value
+          if re.fullmatch('https:\/\/api\.twilio\.com\/2010-04-01\/Accounts\/AC[a-z\d]+\/Calls\/CA[a-z\d]+\/Recordings.json', field_value) == None: # If not in correct format, then move on to the next value
             continue
           
           recording_filename = filename_prefix + header_suffix
@@ -281,7 +281,7 @@ def main():
     exit()
 
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
-  if (config == ''):
+  if config == '':
     log('twilio_settings.ini file not found. Exiting.', True)
     exit()
 
@@ -391,7 +391,7 @@ def main():
       if (encryptionDetails == None) and (audioFormat != 'wav'):
         recordingUrl += '.' + audioFormat
 
-      if (encryptionDetails != None): # Currently, can only download encrypted recordings in .wav format
+      if encryptionDetails != None: # Currently, can only download encrypted recordings in .wav format
         audioFormat = 'wav'
       
       recordingFile = session.get(recordingUrl) # Uses the created URI to retrieve the actual recording
@@ -399,7 +399,7 @@ def main():
       with open(fullpath, 'wb') as f:
         f.write(recordingFile.content) # Actual putting of the file into the folder
 
-      if(encryptionDetails != None): # Decryption, if applicable
+      if encryptionDetails != None : # Decryption, if applicable
         decrypt_recording(privateKey, fullpath, encryptionDetails['encrypted_cek'], encryptionDetails['iv'])
         # Completed decryption
       
