@@ -1,21 +1,20 @@
 # Twilio audio download
 
-With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all calls recorded using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
+With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all call recordings created using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
-This script is currently in beta. It has these limitations:
-* The twilio-call field plug-in can only be used on one field, though that field can be a repeated field.
-* It will not work when the twilio-call field plug-in is used in a nested repeated group (i.e. a repeat group within a repeat group).
-* When downloading data in wide format, all repeat instances of the twilio-call field must be [relevant](https://docs.surveycto.com/02-designing-forms/01-core-concepts/08.relevance.html), or it may not download all recordings. If that field is sometimes not relevant, be sure to download your data in long format instead.
+This script will check all files in the same folder as the "thenrun" folder (so, if you are exporting in long format, it will check each of the CSV files that are created). In those CSV files, the script will check all field names that contain "twilio_call_recordings_url" for URLs to the recordings. For example, it will check fields called "twilio_call_recordings_url", "second_twilio_call_recordings_url", "twilio_call_recordings_url-next", and so on. However, this can be changed in the 'twilio_settings.ini file (see *[Setting up the twilio_settings.ini file](#Setting-up-the-twilio_settings.ini-file)* below for more info). Capitalization does not matter, so the field "Twilio_Call_Recordings_url-next" will also be checked.
+
+[![Beta download](extras/readme-images/beta-release-download.jpg)]()
 
 If you run into issues while using this script, see *Troubleshooting* below. If you believe you have found an error with the script, email max@surveycto.com; be sure to send the "recording_log.log" file when you do so.
 
 ## Setup
 
-First, click [here](https://github.com/TheOmnimax/twilio-audio-download/raw/master/download-files.zip) to download the ZIP file of the files you will need, and decompress that file. There will be three files in that folder.
+First, click [here](https://github.com/TheOmnimax/twilio-audio-download/raw/master/download-files.zip) to download the ZIP file of the files you will need, and decompress that file. There will be three files in that folder: Two .py files, and one .ini file.
 
 ### Setting up Python
 
-This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to install it.
+This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to associate Python files with Python 3, and possibly install it if needed. Make sure you check if Python 3 is already installed before trying to install it, if applicable
 
 #### Installing Python 3 on Windows
 
@@ -43,6 +42,15 @@ To learn more, check our documentation on [automatically executing outside proce
 
 There are two files you need for this script, both of which can be found in the ZIP folder: "twilio-audio-download.py" and "twilio_settings.ini".
 
+#### Moving the twilio_settings.ini file
+
+This file can go in one of two locations: Your user home folder, or in the folder you are exporting to. To find your user home folder on both Windows and Mac, go to the *Users* folder, and open your own user folder. On Windows, the *Users* folder is usually in the `C:\` drive, and on Mac, this is usually in the "Macintosh HD" drive.
+
+Note: If there is a twilio_settings.ini file in both locations, the user home folder will be checked first.
+
+#### Moving the twilio-audio-download.py file
+
+This file must go in the folder you are exporting your data to, inside a "thenrun" folder.
 1. Navigate to the folder where you will be exporting your CSV data to.
 1. Move the "twilio_settings.ini" file to that folder.
 1. In that same folder, create a new folder called "thenrun", and then open that folder.
@@ -57,19 +65,15 @@ The "twilio_settings.ini file" file needs to be changed depending on your setup.
 Below are details about the twilio_settings.ini file. Enter the needed information so the script can run well. For an example, check out [this template](https://github.com/TheOmnimax/twilio-audio-download/blob/master/source/twilio_settings.ini.template).
 
 #### key
+
 **path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank.
 
 #### file
-This is information about the CSV data file that will be used to retrieve the paths to the audio files.
 
-**form_title**: The title of the form. Make sure you are using the form title, not the form ID, since the form title is used in the CSV file name.  
-**rg_name**: Short for "repeat group name". If the Twilio call field is a repeated field, enter the name of the repeated field. If it is in a nested repeat group, enter the name of the top-level repeat group only.  
-**format**: Whether the data is being exported in `long` or `wide` format. If left blank, it will assume the data is being exported in long format. ([Further reading](https://docs.surveycto.com/05-exporting-and-publishing-data/01-overview/09.data-format.html))  
-**add_group_name**: Whether the group name is going to be added to the field name. To check this, in SurveyCTO Desktop, go to *Desktop settings* on the bottom-left, then *EXPORT OPTIONS*, and check *Treatment of enclosing groups in exports*. If *Add groups to exported field names* is selected, make this property `True`. Otherwise, it can be left blank.  
-**field**: The name of the field that uses the Twilio field plug-in
+**field_name**: What the field names need to be contained to be searched for recording information. If not defined, defaults to `twilio_call_recordings_url`.
 
 #### twilio
-This is information about your Twilio account. Be careful about this data, since these are the credentials used to access call recordings. You can access your account SID and auth token from your [Twilio console](https://www.twilio.com/console).
+This is information about your Twilio account. Be careful with this data, since these are the credentials used to access call recordings. You can access your account SID and auth token from your [Twilio console](https://www.twilio.com/console).
 
 #### recording
 **location**: Where the recordings will be exported to. If this is left blank, a folder will be created in the export folder called "Call recordings", and the files will be exported there. If the specified folder does not exist, it will be created.  
@@ -90,6 +94,8 @@ To check your default Python application, open the *check-python.py* file in the
 1. Double-click the *check-python.py* file again to make sure you were successful.
 
 **You are prompted about which application to use**: Select Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well). If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3 on Windows* above), then open the Python file again.
+
+**The file is opened in a text editor or another application**: Close that application, then associate Python files with Python 3 (see *A popup appears stating a version of Python 2 is installed* above, starting at step 2).
 
 <img src="extras/readme-images/in-python3.png" width="294" />
 
@@ -112,7 +118,7 @@ If you get this popup, perform the following:
 1. Paste (shortcut `Cmd + v`) in the path name you had copied. Then enter a single quote `'`. Here is an example:
 <pre><code>chmod u+x '/Users/username/Documents/Data exports/thenrun/twilio-audio-download.command'</code></pre>
 7. Press *Return* on your keyboard.
-1. Close the Terminal window.
+8. Close the Terminal window.
 
 Something that may happen is that a MacOS terminal window will open each time you run the script. You can close this yourself each time, but you can also set it to close automatically:
 1. Open the Terminal.
@@ -129,9 +135,10 @@ If the recordings are not being created, go to the folder where the data is bein
 
 If that file has not been created, check to make sure "thenrun" is turned on in SurveyCTO Desktop, and that Python files are set to be opened using Python 3. If you are still having trouble, paid users can [create a ticket](https://support.surveycto.com/hc/en-us/requests) with SurveyCTO support. All users can also post to the [community forums](https://support.surveycto.com/hc/en-us/community/topics/200604277-Advice-hacks-and-questions-about-using-SurveyCTO).
 
-## File names
+## Audio file names
 
 The audio files will have the following format for their names:
+
 1. Start with the unique identifier of the form instance after the "uuid:" part
 1. Whatever comes after came after "twilio_call_recordings_url" in the original field name (or whatever the value of "field_name" is in the twilio_settings.ini file). For example, If the field name is "the_twilio_call_recordings_url_here", then the extracted part will be "_here".
 1. Underscore `_`
@@ -149,6 +156,6 @@ In addition, if the file name has already been used by the Python script, then i
 
 ## Further reading
 
-If you would like to test this yourself, deploy the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) sample form onto your server, perform some test calls, and try using this script to download those recordings.
+If you would like to test this yourself before truly starting data collection with your main form, deploy the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) sample form onto your server, perform some test calls, and try using this script to download those recordings.
 
 To learn how to set up Twilio encryption, check out their [documentation](https://www.twilio.com/docs/voice/tutorials/voice-recording-encryption). You can also generate your key pair [using SurveyCTO](https://docs.surveycto.com/02-designing-forms/02-additional-topics/06.encrypting.html).

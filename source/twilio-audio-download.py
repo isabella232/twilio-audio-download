@@ -163,7 +163,11 @@ def decrypt_recording(key, encrypted_path, encrypted_cek, iv):
 def getConfigInfo():
   try:
     config = configparser.ConfigParser()
-    config.read('twilio_settings.ini')
+    home_path = str(os.path.expanduser('~'))
+    try:
+      config.read(home_path + folder_separator + 'twilio_settings.ini')
+    except:
+      config.read('twilio_settings.ini') # If not in the home path, then check the working directory
     return config
   except:
     return ''
