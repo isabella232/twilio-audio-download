@@ -4,7 +4,7 @@ With this script, whenever you use SurveyCTO Desktop to export CSV data, it will
 
 This script will check all files in the same folder as the "thenrun" folder (so, if you are exporting in long format, it will check each of the CSV files that are created). In those CSV files, the script will check all field names that contain "twilio_call_recordings_url" for URLs to the recordings. For example, it will check fields called "twilio_call_recordings_url", "second_twilio_call_recordings_url", "twilio_call_recordings_url-next", and so on. However, this can be changed in the 'twilio_settings.ini file (see *[Setting up the twilio_settings.ini file](#Setting-up-the-twilio_settings.ini-file)* below for more info). Capitalization does not matter, so the field "Twilio_Call_Recordings_url-next" will also be checked.
 
-[![Beta download](extras/readme-images/beta-release-download.jpg)]()
+[![Beta download](extras/readme-images/beta-release-download.jpg)](https://github.com/SurveyCTO/twilio-audio-download/raw/master/download-files.zip)
 
 If you run into issues while using this script, see *Troubleshooting* below. If you believe you have found an error with the script, email max@surveycto.com; be sure to send the "recording_log.log" file when you do so.
 
