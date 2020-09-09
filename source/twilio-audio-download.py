@@ -165,7 +165,7 @@ def getConfigInfo():
     config = configparser.ConfigParser()
     home_path = str(os.path.expanduser('~'))
     try:
-      config.read(home_path + 'twilio_settings.ini')
+      config.read(home_path + folder_separator + 'twilio_settings.ini')
     except:
       config.read('twilio_settings.ini') # If not in the home path, then check the working directory
     return config
