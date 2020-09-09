@@ -16,7 +16,7 @@ First, click [here](https://github.com/TheOmnimax/twilio-audio-download/raw/mast
 
 This script uses Python 3. To make sure the file will run properly, you will have to make sure the correct application is being used to run it. To check the version of Python that is opened by default, run the file "check-python.py" that is stored in the ZIP file. To learn how to run Python files on Windows and Mac, see *Running Python files on Windows* and *Running Python files on Mac* below, respectively. When you run that file, it will say which version of Python it is running. If it is below Python 3, you will need to associate Python files with Python 3, and possibly install it if needed. Make sure you check if Python 3 is already installed before trying to install it, if applicable.
 
-Note: This script has only been tested on Windows and MacOS. If you would like to use this script on Linux, feel free to fork it and make any needed changes. It may already work on Linux, but the error popup (see [Troubleshooting](#troubleshooting)) will only work on Windows and MacOS.
+Note: This script has only been tested on Windows and MacOS. If you would like to use this script on Linux, feel free to fork this repository and make any needed changes. It may already work on Linux, but the error popup (see [Troubleshooting](#troubleshooting)) will only work on Windows and MacOS.
 
 #### Installing Python 3 on Windows
 
