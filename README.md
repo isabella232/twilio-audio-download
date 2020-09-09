@@ -90,7 +90,7 @@ To check your default Python application, open the *check-python.py* file in the
 **A popup appears stating a version of Python 2 is installed**:
 1. Click *OK*.
 1. Right-click the *check-python.py* file, hover over *Open with*, and click *Choose another app*.
-1. Click Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well), checkmark *Always use this app to open .py files*, and click *OK*. If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3 on Windows* above), then go back to step 2.
+1. Click Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well), select the checkbox for *Always use this app to open .py files*, and click *OK*. If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3 on Windows* above), then go back to step 2.
 1. Double-click the *check-python.py* file again to make sure you were successful.
 
 **You are prompted about which application to use**: Select Python 3 (Python 3.8, 3.7.4, and other versions of Python 3 will work well). If Python 3 is not listed as an option, install Python 3 (see *Installing Python 3 on Windows* above), then open the Python file again.
