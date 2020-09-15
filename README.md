@@ -50,6 +50,8 @@ This file can go in one of two locations: Your user home folder, or in the folde
 
 Note: If there is a twilio_settings.ini file in both locations, the user home folder will be checked first.
 
+<img src="extras/readme-images/twilios_settings.png" width=50% />
+
 #### Moving the twilio-audio-download.py file
 
 This file must go in the folder you are exporting your data to, inside a "thenrun" folder.
