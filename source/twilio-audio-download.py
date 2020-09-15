@@ -165,13 +165,19 @@ def getConfigInfo():
   try:
     config = configparser.ConfigParser()
     home_path = str(os.path.expanduser('~'))
-    try:
-      config.read(home_path + folder_separator + 'twilio_settings.ini')
-    except:
+
+    config_path = home_path + folder_separator + 'twilio_settings.ini'
+    if(os.path.exists(config_path)):
+      config.read(config_path)
+    elif os.path.exists('twilio_settings.ini'):
       config.read('twilio_settings.ini') # If not in the home path, then check the working directory
+    else:
+      log('Unable to find twilio_settings.ini file in either home directory or export folder.', True)
+      exit()
+
     return config
-  except:
-    return ''
+  except Exception as e:
+    log('Error while retrieving twilio_settings.ini file: ' + str(e))
 
 # Retrieves the account sid, auth token, and private key. For the private key, it takes the file, and processes it into a way that can be used by the decryptor. That way, the key does not have to be reprocessed each time.
 def getCredentials(config):
