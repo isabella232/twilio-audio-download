@@ -69,7 +69,7 @@ Below are details about the twilio_settings.ini file. Enter the needed informati
 
 #### key
 
-**path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank.
+**path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank. It is a good idea to remove the example path .ini file, so you do not get any unnecessary warnings.
 
 #### file
 
