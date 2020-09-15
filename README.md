@@ -56,7 +56,6 @@ Note: If there is a twilio_settings.ini file in both locations, the user home fo
 
 This file must go in the folder you are exporting your data to, inside a "thenrun" folder.
 1. Navigate to the folder where you will be exporting your CSV data to.
-1. Move the "twilio_settings.ini" file to that folder.
 1. In that same folder, create a new folder called "thenrun", and then open that folder.
 1. Move the "twilio-audio-download.py" file to that "thenrun" folder.
 
