@@ -23,7 +23,8 @@ try:
     '" with title "' + title + '" '
     applescript += 'with icon note buttons {"OK"}'
 
-    print(applescript)
     subprocess.call("osascript -e '{}'".format(applescript), shell=True)
+  else:
+    print('Platform "' + platform + '" does not support popups.')
 except Exception as e:
   print(e)
