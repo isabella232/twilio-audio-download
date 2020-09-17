@@ -2,7 +2,7 @@
 
 With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all call recordings created using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
-This script will check all files in the same folder as the "thenrun" folder (so, if you are exporting in long format, it will check each of the CSV files that are created). In those CSV files, the script will check all field names that contain "twilio_call_recordings_url" for URLs to the recordings. For example, it will check fields called "twilio_call_recordings_url", "second_twilio_call_recordings_url", "twilio_call_recordings_url-next", and so on. However, this can be changed in the 'twilio_settings.ini file (see *[Setting up the twilio_settings.ini file](#Setting-up-the-twilio_settings.ini-file)* below for more info). Capitalization does not matter, so the field "Twilio_Call_Recordings_url-next" will also be checked.
+This script will check all files in the same folder as the ["thenrun" folder](https://docs.surveycto.com/05-exporting-and-publishing-data/02-exporting-data-with-surveycto-desktop/10.outside-processes.html); so, if you are exporting in long format, it will check each of the CSV files that are created (we will explain how to set this up). In those CSV files, the script will check all field names that contain "twilio_call_recordings_url" for URLs to the recordings. For example, it will check fields called "twilio_call_recordings_url", "second_twilio_call_recordings_url", "twilio_call_recordings_url-next", and so on. However, this can be changed in the 'twilio_settings.ini file (see *[Setting up the twilio_settings.ini file](#setting-up-the-twilio_settingsini-file)* below for more info). Capitalization does not matter, so the field "Twilio_Call_Recordings_url-next" will also be checked.
 
 [![Beta download](extras/readme-images/beta-release-download.jpg)](https://github.com/SurveyCTO/twilio-audio-download/raw/master/download-files.zip)
 
@@ -50,11 +50,12 @@ This file can go in one of two locations: Your user home folder, or in the folde
 
 Note: If there is a twilio_settings.ini file in both locations, the user home folder will be checked first.
 
+<img src="extras/readme-images/twilios_settings.png" width=50% />
+
 #### Moving the twilio-audio-download.py file
 
 This file must go in the folder you are exporting your data to, inside a "thenrun" folder.
 1. Navigate to the folder where you will be exporting your CSV data to.
-1. Move the "twilio_settings.ini" file to that folder.
 1. In that same folder, create a new folder called "thenrun", and then open that folder.
 1. Move the "twilio-audio-download.py" file to that "thenrun" folder.
 
@@ -68,7 +69,7 @@ Below are details about the twilio_settings.ini file. Enter the needed informati
 
 #### key
 
-**path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank.
+**path**: Full path to the private key on your computer used to decrypt your files. This usually ends in *.pem*. If your call recordings are not encrypted, you can leave this blank. It is a good idea to remove the example path .ini file, so you do not get any unnecessary warnings.
 
 #### file
 

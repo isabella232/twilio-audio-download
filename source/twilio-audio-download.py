@@ -46,6 +46,11 @@ def log(message, show_popup = False, include_time = True):
   if show_popup == True:
     error_popup = True # For showing popup at the end if there is an error that warrants one.
 
+def endEarly():
+  log('Exiting early...')
+  popup('Error', 'There was an issue while downloading the call recordings. Please see the recording.log file for details.')
+  exit()
+
 # INSTALLATION FUNCTIONS
 
 def install(package):
@@ -61,7 +66,7 @@ def checkInstall(moduleName, packageName=None):
       install(moduleName)
     except Exception as e:
       log('Sorry, but the installation failed: ' + str(e), True)
-      exit()
+      endEarly()
     
     # End module not installed
 # End checkInstall
@@ -165,13 +170,19 @@ def getConfigInfo():
   try:
     config = configparser.ConfigParser()
     home_path = str(os.path.expanduser('~'))
-    try:
-      config.read(home_path + folder_separator + 'twilio_settings.ini')
-    except:
+
+    config_path = home_path + folder_separator + 'twilio_settings.ini'
+    if(os.path.exists(config_path)):
+      config.read(config_path)
+    elif os.path.exists('twilio_settings.ini'):
       config.read('twilio_settings.ini') # If not in the home path, then check the working directory
+    else:
+      log('Unable to find twilio_settings.ini file in either the home directory or export folder.', True)
+      endEarly()
+
     return config
-  except:
-    return ''
+  except Exception as e:
+    log('Error while retrieving twilio_settings.ini file: ' + str(e))
 
 # Retrieves the account sid, auth token, and private key. For the private key, it takes the file, and processes it into a way that can be used by the decryptor. That way, the key does not have to be reprocessed each time.
 def getCredentials(config):
@@ -181,8 +192,7 @@ def getCredentials(config):
     authtoken = credentials['auth_token']
   except Exception as e:
     log('Unable to retrieve Twilio credentials: ' + str(e), True)
-    exit() # No point in continuing if unable to retrieve credentials
-    # return ['', '', '']
+    endEarly() # No point in continuing if unable to retrieve credentials
 
   try:
     privateKeyPath = config['key']['path']
@@ -271,7 +281,7 @@ def getFieldValue(csvLocations, fieldname): # Returns URIs to the recordings so 
 
   if len(values) == 0:
     log('No recordings found in CSV file')
-    exit()
+    endEarly()
   return values
 
 def main():
@@ -279,12 +289,12 @@ def main():
 
   if not sys.version_info.major == 3:
     log('Error: You are not using Python 3 to run this script.', True)
-    exit()
+    endEarly()
 
   config = getConfigInfo() # Retrieves the info in the twilio_settings.ini file
   if config == '':
     log('twilio_settings.ini file not found. Exiting.', True)
-    exit()
+    endEarly()
 
   credentials = getCredentials(config) # Retrieve Twilio credentials and private key
   sid, authtoken, privateKey = [credentials[i] for i in range(0, 3)]
@@ -325,7 +335,7 @@ def main():
     new_filepath = working_folder + folder_separator + 'Call recordings' + folder_separator
     if filepath == new_filepath: # If it is the default folder name that cannot be created, then there is no alternative folder name, so exiting
       log('Try specifying an existing folder instead. Exiting...')
-      exit()
+      endEarly()
     else:
       filepath = new_filepath # Since specified folder cannot be created, will use the default path name instead
       try:
@@ -333,8 +343,7 @@ def main():
           os.makedirs(filepath)
       except Exception as e:
         log('Unable to create alternative folder: ' + str(e), True)
-        log('Exiting...')
-        exit()
+        endEarly()
   
   for base_filename in recLocs:
     recording_uri = recLocs[base_filename]
