@@ -17,8 +17,10 @@ if version_all.major < 3:
 print(message)
 try:
   if(platform == 'windows'):
+    print('Platform is "windows"')
     ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
   elif platform == 'darwin':
+    print('Platform is "darwin"')
     applescript = 'display dialog "' + message + \
     '" with title "' + title + '" '
     applescript += 'with icon note buttons {"OK"}'
