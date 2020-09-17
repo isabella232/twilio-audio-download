@@ -16,7 +16,7 @@ if version_all.major < 3:
 
 print(message)
 try:
-  if(platform == 'windows'):
+  if (platform == 'windows') or (platform == 'win32'):
     print('Platform is "windows"')
     ctypes.windll.user32.MessageBoxW(0, message, title, 0x0 | 0x40)
   elif platform == 'darwin':
