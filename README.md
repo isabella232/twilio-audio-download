@@ -1,5 +1,7 @@
 # Twilio audio download
 
+*This script is part of a series of tools for working with Twilio in SurveyCTO. To learn more, check out our support article on [using Twilio with SurveyCTO to securely record phone calls only with consent](https://support.surveycto.com/hc/en-us/articles/360055415333)*.
+
 With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all call recordings created using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
 This script will check all files in the same folder as the ["thenrun" folder](https://docs.surveycto.com/05-exporting-and-publishing-data/02-exporting-data-with-surveycto-desktop/10.outside-processes.html); so, if you are exporting in long format, it will check each of the CSV files that are created (we will explain how to set this up). In those CSV files, the script will check all field names that contain "twilio_call_recordings_url" for URLs to the recordings. For example, it will check fields called "twilio_call_recordings_url", "second_twilio_call_recordings_url", "twilio_call_recordings_url-next", and so on. However, this can be changed in the 'twilio_settings.ini file (see *[Setting up the twilio_settings.ini file](#setting-up-the-twilio_settingsini-file)* below for more info). Capitalization does not matter, so the field "Twilio_Call_Recordings_url-next" will also be checked.
