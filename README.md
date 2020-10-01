@@ -1,6 +1,6 @@
 # Twilio audio download
 
-*This script is part of a series of tools for working with Twilio in SurveyCTO. To learn more, check out our support article on [using Twilio with SurveyCTO to securely record phone calls only with consent](https://support.surveycto.com/hc/en-us/articles/360055415333)*
+*This script is part of a series of tools for working with Twilio in SurveyCTO. To learn more, check out our support article on [using Twilio with SurveyCTO to securely record phone calls only with consent](https://support.surveycto.com/hc/en-us/articles/360055415333)*.
 
 With this script, whenever you use SurveyCTO Desktop to export CSV data, it will also download all call recordings created using the [twilio-call](https://github.com/surveycto/twilio-call/blob/master/README.md) field plug-in.
 
